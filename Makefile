@@ -15,6 +15,10 @@ PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
 all: dropdb createdb restore shell
+.PHONY: clean
+clean: 
+	rm -f *.log
+
 mycomando:
 	@echo aqui va una descripcion
 	@cat myfichero.sql | psql mibasededatos
@@ -40,21 +44,20 @@ allqueries: query1 query2 query3 query4 query5 query6
 	@cat query?.log > all_queries.log
 
 query1:
-	@echo query-1: "please insert here a short description" | tee query1.log
+	@echo query-1: "Esta consulta muestra el numero de reservas que contienen un billete de ida y vuelta por aeropuerto" | tee query1.log
 	@cat query1.sql | $(PSQL) | tee -a query1.log
 query2:
 	@echo query-2: "please insert here a short description" | tee query2.log
 	@cat query2.sql | $(PSQL) | tee -a query2.log
 query3:
-	@echo query3: "please insert here a short description" | tee query3.log
+	@echo query3: "Esta consulta muestra el numero de pasajeros recibidos por aeropuerto" | tee query3.log
 	@cat query3.sql | $(PSQL) | tee -a query3.log
 query4:
 	@echo query4: "please insert here a short description" | tee query4.log
 	@cat query4.sql | $(PSQL) | tee -a query4.log
 query5:
-	@echo query5: "please insert here a short description" | tee query5.log
+	@echo query5: "Esta consulta muestra las reservas para las que no se emitio una tarjeta de embarque" | tee query5.log
 	@cat query5.sql | $(PSQL) | tee -a query5.log
 query6:
 	@echo query6: "please insert here a short description" | tee query6.log
 	@cat query6.sql | $(PSQL) | tee -a query6.log
-
