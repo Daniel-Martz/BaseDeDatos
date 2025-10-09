@@ -16,6 +16,8 @@ PG_RESTORE = pg_restore
 
 all: dropdb createdb restore shell
 
+nuevabase: dropdb createdb restore crearnuevabase shell
+
 mycomando:
 	@echo aqui va una descripcion
 	@cat myfichero.sql | psql mibasededatos
@@ -32,6 +34,11 @@ dump:
 restore:
 	@echo restore data base
 	@cat $(DBNAME).sql | $(PSQL)  
+
+crearnuevabase:
+	@echo creating new data base
+	@cat nuevabase.sql | $(PSQL)  
+
 psql: shell
 shell:
 	@echo create psql shell
@@ -50,7 +57,7 @@ query3:
 	@echo query3: "Esta consulta muestra el numero de pasajeros recibidos por aeropuerto." | tee query3.log
 	@cat query3.sql | $(PSQL) | tee -a query3.log
 query4:
-	@echo query4: "please insert here a short description" | tee query4.log
+	@echo query4: "Esta consulta muestra vuelo con mas asientos vacios." | tee query4.log
 	@cat query4.sql | $(PSQL) | tee -a query4.log
 query5:
 	@echo query5: "Esta consulta muestra las reservas para las que no se emitio una tarjeta de embarque." | tee query5.log
