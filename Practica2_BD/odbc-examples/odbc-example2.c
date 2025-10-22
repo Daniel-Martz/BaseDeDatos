@@ -41,7 +41,7 @@ int main(void) {
     }
     printf("\n");
 
-    SQLBindCol(stmt, 1, SQL_C_SLONG, &x, sizeof(SQLINTEGER), NULL);
+    SQLBindCol(stmt, 1, SQL_C_SLONG, &x, sizeof(SQLINTEGER), NULL)/*Columna tal la asocias a la variable tal*/;
     SQLBindCol(stmt, 2, SQL_C_CHAR, y, sizeof(y), NULL);
     /* Loop through the rows in the result-set */
     while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
@@ -55,5 +55,6 @@ int main(void) {
     }
 
     return EXIT_SUCCESS;
+    /*Limpiar y liberar free handle*/
 }
 

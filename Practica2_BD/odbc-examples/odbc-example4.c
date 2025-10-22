@@ -6,7 +6,7 @@
 #include "odbc.h"
 
 /*
- * example 4 with a queries build on-the-fly, the good way
+ * example 4 with a queries build on-the-fly (dinámica), the good way
  */
 
 int main(void) {
@@ -31,7 +31,7 @@ int main(void) {
     printf("x = ");
     fflush(stdout);
     while (scanf("%d", &x) != EOF) {
-        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &x, 0, NULL);
+        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &x, 0, NULL)/*Resultado de la consulta 1 lo asocia a la variable x*/;
         
         SQLExecute(stmt);
         
