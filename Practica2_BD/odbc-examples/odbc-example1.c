@@ -42,7 +42,7 @@ int main(void) {
     printf("\n");
 
     /* Loop through the rows in the result-set */
-    while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
+    while (SQL_SUCCEEDED(ret = SQLFetch(stmt)/*siguiente siguiente*/)) {
         ret = SQLGetData(stmt, 1, SQL_C_SLONG, &x, sizeof(SQLINTEGER), NULL);
         ret = SQLGetData(stmt, 2, SQL_C_CHAR, y, sizeof(y), NULL);
         printf("%d\t%s\n", x, y);
@@ -57,5 +57,6 @@ int main(void) {
     }
 
     return EXIT_SUCCESS;
+    /*Falta limpiar y liberar handle*/
 }
 
