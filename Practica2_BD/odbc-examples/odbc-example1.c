@@ -48,6 +48,8 @@ int main(void) {
         printf("%d\t%s\n", x, y);
     }
 
+    /*falta limpiar y el freehandle*/
+    
     /* DISCONNECT */
     ret = odbc_disconnect(env, dbc);
     if (!SQL_SUCCEEDED(ret)) {

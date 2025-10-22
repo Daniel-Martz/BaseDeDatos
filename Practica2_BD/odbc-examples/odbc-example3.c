@@ -31,6 +31,7 @@ int main(void) {
     while (fgets(x, sizeof(x), stdin) != NULL) {
         char query[512];
         sprintf(query, "select y from a where x = %s;", x);
+        printf ("%s\n", query);
 
         SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
 
