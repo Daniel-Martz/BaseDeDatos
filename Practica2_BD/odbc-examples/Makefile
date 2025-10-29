@@ -2,7 +2,7 @@ CC = gcc -g
 CFLAGS = -Wall -Wextra -pedantic #-ansi
 LDLIBS = -lodbc
 
-export PGDATABASE:=test01
+export PGDATABASE:=flight
 export PGUSER :=alumnodb
 export PGPASSWORD :=alumnodb
 export PGCLIENTENCODING:=LATIN9

@@ -31,7 +31,7 @@ int main(void) {
     while (fgets(x, sizeof(x), stdin) != NULL) {
         char query[512];
         sprintf(query, "select y from a where x = %s;", x);
-        printf ("%s\n", query);
+        printf ("%s\n", query); /*ojo error de syntax*/
 
         SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
 
@@ -42,7 +42,7 @@ int main(void) {
             printf("y = %s\n", y);
         }
 
-        SQLCloseCursor(stmt);
+        SQLCloseCursor(stmt); /*OJO:limpio la variable stmt*/
 
         printf("x = ");
         fflush(stdout);
