@@ -1,4 +1,4 @@
-CC = gcc -g
+`CC = gcc -g
 CFLAGS = -Wall -Wextra -pedantic #-ansi
 LDLIBS = -lodbc
 

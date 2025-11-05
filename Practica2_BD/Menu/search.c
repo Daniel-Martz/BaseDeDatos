@@ -2,7 +2,7 @@
 * Created by roberto on 3/5/21.
 */
 #include "search.h"
-void    results_search(char * from, char *to,
+void    results_search(char * from, char *to, char* date,
                        int * n_choices, char *** choices,
                        int max_length,
                        int max_rows)
@@ -37,6 +37,13 @@ void    results_search(char * from, char *to,
             "nor his maidservant, nor his ox, nor his ass, "
             "nor any thing that is thy neighbour's."
     };
+
+
+
+
+
+
+    meter odbd4
     *n_choices = sizeof(query_result_set) / sizeof(query_result_set[0]);
 
     max_rows = MIN(*n_choices, max_rows);
