@@ -9,7 +9,6 @@ export PGCLIENTENCODING:=LATIN9
 export PGHOST:=localhost
 
 DBNAME =$(PGDATABASE)
-PSQL = psql
 CREATEDB = createdb
 DROPDB = dropdb --if-exists
 PG_DUMP = pg_dump
@@ -21,7 +20,7 @@ HEADERS = odbc.h bpass.h  lmenu.h search.h windows.h loop.h
 EXE = menu
 OBJ = $(EXE).o bpass.o   loop.o  search.o windows.o
 
-test01: dropdb createdb restore shell
+test01: dropdb createdb restore
 createdb:
 	@echo Creando BBDD
 	@$(CREATEDB)
@@ -34,8 +33,8 @@ dump:
 	@$(PG_DUMP) > $(DBNAME).sql
 restore:
 	@echo restore data base
-	@cat $(DBNAME).sql | $(PSQL)
-psql: shell
+	@cat $(DBNAME).sql
+
 	
 all : $(EXE)
 
@@ -57,5 +56,3 @@ run:
 valgrind:
 	valgrind --leak-check=full ./$(EXE)
 
-
-/*Escenarios de pruebas*/

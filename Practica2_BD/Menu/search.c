@@ -39,11 +39,7 @@ void    results_search(char * from, char *to, char* date,
     };
 
 
-
-
-
-
-    meter odbd4
+meter expaple4
     *n_choices = sizeof(query_result_set) / sizeof(query_result_set[0]);
 
     max_rows = MIN(*n_choices, max_rows);
