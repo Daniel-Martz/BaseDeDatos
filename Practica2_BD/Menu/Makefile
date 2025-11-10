@@ -18,7 +18,7 @@ PG_RESTORE = pg_restore
 HEADERS = odbc.h bpass.h  lmenu.h search.h windows.h loop.h
 
 EXE = menu
-OBJ = $(EXE).o bpass.o   loop.o  search.o windows.o
+OBJ = $(EXE).o bpass.o loop.o  search.o windows.o odbc.o
 
 test01: dropdb createdb restore
 createdb:
@@ -33,7 +33,7 @@ dump:
 	@$(PG_DUMP) > $(DBNAME).sql
 restore:
 	@echo restore data base
-	@cat $(DBNAME).sql
+	@psql $(DBNAME) < $(DBNAME).sql
 
 	
 all : $(EXE)
@@ -50,9 +50,13 @@ $(EXE): $(DEPS) $(OBJ)
 clean:
 	rm -f *.o core $(EXE)
 
-run:
+run: $(EXE)
 	./$(EXE)
 
 valgrind:
 	valgrind --leak-check=full ./$(EXE)
+
+
+
+
 

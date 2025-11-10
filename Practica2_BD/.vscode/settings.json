@@ -2,6 +2,9 @@
     "files.associations": {
         "windows.h": "c",
         "lmenu.h": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "search.h": "c",
+        "sqlext.h": "c",
+        "odbc.h": "c"
     }
 }

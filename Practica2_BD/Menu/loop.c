@@ -136,7 +136,21 @@ void loop(_Windows *windows, _Menus *menus,
                 }
                 break;
             case KEY_DOWN:
-            case 0x2D: /* - */
+            if (item_index(auxItem) == SEARCH && focus == FOCUS_LEFT) {
+                    (void) form_driver(forms->search_form, REQ_NEXT_FIELD);
+                    (void) form_driver(forms->search_form, REQ_END_LINE);
+                    (void) wrefresh(windows->form_search_win);
+                } else if (item_index(auxItem) == BPASS && focus == FOCUS_LEFT) {
+                    (void) form_driver(forms->bpass_form, REQ_NEXT_FIELD);
+                    (void) form_driver(forms->bpass_form, REQ_END_LINE);
+                    (void) wrefresh(windows->form_bpass_win);
+                } else if (focus == FOCUS_RIGHT){
+                    out_highlight = MIN(out_highlight + 1, n_out_choices-1);
+                    print_out(out_win, menus->out_win_choices, n_out_choices,
+                              out_highlight, windows->out_title);
+                }
+                break;
+            /*case 0x2D:  - 
                 if (item_index(auxItem) == SEARCH && focus == FOCUS_LEFT) {
                     (void) form_driver(forms->search_form, REQ_NEXT_FIELD);
                     (void) form_driver(forms->search_form, REQ_END_LINE);
@@ -151,6 +165,7 @@ void loop(_Windows *windows, _Menus *menus,
                               out_highlight, windows->out_title);
                 }
                 break;
+                */
             case KEY_STAB: /* tab key */
             case 9:
                 /* toggle focus between win_form and win_out*/
