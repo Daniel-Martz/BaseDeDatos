@@ -14,13 +14,12 @@ DROPDB = dropdb --if-exists
 PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
-# recompile if this header changes
 HEADERS = odbc.h bpass.h  lmenu.h search.h windows.h loop.h
 
 EXE = menu
 OBJ = $(EXE).o bpass.o loop.o  search.o windows.o odbc.o
 
-test01: dropdb createdb restore
+all: dropdb createdb restore
 createdb:
 	@echo Creando BBDD
 	@$(CREATEDB)
@@ -36,14 +35,11 @@ restore:
 	@psql $(DBNAME) < $(DBNAME).sql
 
 	
-all : $(EXE)
-
-# compile all files ending in *.c
+compile : $(EXE)
 %.o: %.c $(HEADERS)
 	@echo Compiling $<...
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-# link binary
+	
 $(EXE): $(DEPS) $(OBJ)
 	$(CC) -o $(EXE) $(OBJ) $(LDLIBS)
 

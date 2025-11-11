@@ -6,6 +6,19 @@
 #include "odbc.h"
 #include "lbpass.h"
 
+/**
+ * @brief Obtiene todas las tarjetas de embarque asociadas a un código de reserva.
+ * @author Daniel Martinez
+ *
+ * Esta función consulta la base de datos para encontrar todos los billetes
+ * y sus correspondientes tarjetas de embarque que coincidan con un bookID.
+ *
+ * @param bookID        El book_ref a buscar.
+ * @param n_choices     Puntero para almacenar el número de resultados.
+ * @param choices       Array de cadenas para almacenar los resultados.
+ * @param max_length    Longitud máxima de cada cadena en choices.
+ * @param max_rows      Número máximo de filas a almacenar en choices.
+ */
 void results_bpass(char *bookID,
                    int *n_choices, char ***choices,
                    int max_length,
@@ -20,8 +33,7 @@ void results_bpass(char *bookID,
     SQLRETURN ret;
 
     /* Flag para controlar la transacción (1 = OK, 0 = FALLO) */
-    int flag_consulta1 = 1;
-    
+    int flag = 1;
 
     /*Buffers para los datos*/
     SQLINTEGER flight_id;
@@ -35,6 +47,13 @@ void results_bpass(char *bookID,
     /*Indicadores*/
     SQLLEN ind_bookID = SQL_NTS;
     SQLLEN ind_tk = 0, ind_fid = 0, ind_ac = 0, ind_seat = 0, ind_bno = 0;
+
+    if (bookID == NULL || strlen(bookID) == 0)
+    {
+        snprintf((*choices)[0], max_length, "Error no hay datos para este Book_ID.");
+        *n_choices = 1;
+        return;
+    }
 
     /* Conexión a la base de datos */
     ret = odbc_connect(&env, &dbc);
@@ -53,7 +72,6 @@ void results_bpass(char *bookID,
         return;
     }
 
-    /* --- Preparar TODAS las consultas --- */
     const char *sql_tickets =
         "SELECT tf.flight_id, tf.ticket_no, t.passenger_name, f.aircraft_code, f.scheduled_departure "
         "FROM ticket_flights AS tf "
@@ -82,16 +100,16 @@ void results_bpass(char *bookID,
     SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt_insert);
     SQLPrepare(stmt_insert, (SQLCHAR *)sql_insert, SQL_NTS);
 
-    /* --- Ejecutar Consulta 1 (Billetes) --- */
+    /* Consulta 1 (Billetes) */
     SQLBindParameter(stmt_tickets, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 6, 0, bookID, 0, &ind_bookID);
 
     ret = SQLExecute(stmt_tickets);
     if (!SQL_SUCCEEDED(ret))
     {
-        snprintf((*choices)[0], max_length, "ERROR: Fallo al buscar billetes para la reserva %s.", bookID);
-        flag_consulta1 = 0;
+        snprintf((*choices)[0], max_length, "Error: Fallo al buscar billetes para la reserva %s.", bookID);
+        flag = 0;
     }
-    
+
     SQLBindCol(stmt_tickets, 1, SQL_C_LONG, &flight_id, sizeof(flight_id), &ind_fid);
     SQLBindCol(stmt_tickets, 2, SQL_C_CHAR, ticket_no, sizeof(ticket_no), &ind_tk);
     SQLBindCol(stmt_tickets, 3, SQL_C_CHAR, passenger_name, sizeof(passenger_name), NULL);
@@ -99,73 +117,75 @@ void results_bpass(char *bookID,
     SQLBindCol(stmt_tickets, 5, SQL_C_CHAR, scheduled_departure, sizeof(scheduled_departure), NULL);
 
     i = 0;
-    while (flag_consulta1 && SQL_SUCCEEDED(ret = SQLFetch(stmt_tickets)) && i < max_rows)
+    while (flag && SQL_SUCCEEDED(ret = SQLFetch(stmt_tickets)) && i < max_rows)
     {
-        /* 1. Ejecución Consulta 2 (Encontrar asiento) */
+        /* Consulta 2 (Encontrar asiento) */
         SQLBindParameter(stmt_seat, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 3, 0, aircraft_code, 0, &ind_ac);
         SQLBindParameter(stmt_seat, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &flight_id, 0, &ind_fid);
         SQLBindCol(stmt_seat, 1, SQL_C_CHAR, seat_no, sizeof(seat_no), &ind_seat);
-        
+
         ret = SQLExecute(stmt_seat);
-        if (!SQL_SUCCEEDED(ret)) {
-            snprintf((*choices)[0], max_length, "ERROR BD al ejecutar búsqueda de asiento");
-            flag_consulta1 = 0;
+        if (!SQL_SUCCEEDED(ret))
+        {
+            snprintf((*choices)[0], max_length, "Error BD al ejecutar búsqueda de asiento");
+            flag = 0;
             SQLCloseCursor(stmt_seat);
             break;
         }
         ret = SQLFetch(stmt_seat);
         if (ret == SQL_NO_DATA)
         {
-            snprintf((*choices)[0], max_length, "ERROR: Vuelo lleno (ID: %d)", (int)flight_id);
-            flag_consulta1 = 0;
+            snprintf((*choices)[0], max_length, "Error: Vuelo lleno (ID: %d)", (int)flight_id);
+            flag = 0;
             SQLCloseCursor(stmt_seat);
-            break; 
+            break;
         }
         if (!SQL_SUCCEEDED(ret))
         {
-            snprintf((*choices)[0], max_length, "ERROR BD al buscar asiento (fetch)");
-            flag_consulta1 = 0;
+            snprintf((*choices)[0], max_length, "Error BD al buscar asiento (fetch)");
+            flag = 0;
             SQLCloseCursor(stmt_seat);
             break;
         }
         SQLCloseCursor(stmt_seat);
 
-        /* 2. Ejecución Consulta 3 (Generar boarding_no) */
+        /* Consulta 3 (Generar boarding_no) */
         SQLBindParameter(stmt_bno, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &flight_id, 0, &ind_fid);
         SQLBindCol(stmt_bno, 1, SQL_C_LONG, &new_boarding_no, sizeof(new_boarding_no), &ind_bno);
-        
+
         ret = SQLExecute(stmt_bno);
-        if (!SQL_SUCCEEDED(ret)) {
-            snprintf((*choices)[0], max_length, "ERROR BD al generar boarding_no");
-            flag_consulta1 = 0;
+        if (!SQL_SUCCEEDED(ret))
+        {
+            snprintf((*choices)[0], max_length, "Error BD al generar boarding_no");
+            flag = 0;
             SQLCloseCursor(stmt_bno);
             break;
         }
         ret = SQLFetch(stmt_bno);
         if (!SQL_SUCCEEDED(ret))
         {
-            snprintf((*choices)[0], max_length, "ERROR BD al generar boarding_no");
-            flag_consulta1 = 0;
+            snprintf((*choices)[0], max_length, "Error BD al generar boarding_no");
+            flag = 0;
             SQLCloseCursor(stmt_bno);
             break;
         }
         SQLCloseCursor(stmt_bno);
 
-        /* 3. Ejecución Consulta 4 (Insertar) */
+        /* Ejecución Consulta 4 (Insertar) */
         SQLBindParameter(stmt_insert, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 13, 0, ticket_no, 0, &ind_tk);
         SQLBindParameter(stmt_insert, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &flight_id, 0, &ind_fid);
         SQLBindParameter(stmt_insert, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &new_boarding_no, 0, &ind_bno);
         SQLBindParameter(stmt_insert, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 4, 0, seat_no, 0, &ind_seat);
-        
+
         ret = SQLExecute(stmt_insert);
         if (!SQL_SUCCEEDED(ret))
         {
-            snprintf((*choices)[0], max_length, "ERROR BD al insertar la tarjeta embarque");
-            flag_consulta1 = 0;
+            snprintf((*choices)[0], max_length, "Error BD al insertar la tarjeta embarque");
+            flag = 0;
             break;
         }
 
-        /* 4. Éxito para este billete: Formatear salida */
+        /* Éxito para este billete: Formatear salida */
         snprintf((*choices)[i], max_length, "Nombre: %-20.20s | Vuelo: %-6d | Salida: %-19s | Asiento: %-4s",
                  (char *)passenger_name,
                  (int)flight_id,
@@ -174,14 +194,13 @@ void results_bpass(char *bookID,
         i++;
     }
 
-    /* --- Finalizar Transacción --- */
-    if (flag_consulta1 == 1)
+    if (flag == 1)
     {
         /* Éxito: Confirmar transacción */
         SQLEndTran(SQL_HANDLE_DBC, dbc, SQL_COMMIT);
         if (i == 0)
         {
-            snprintf((*choices)[0], max_length, "No hay nuevas tarjetas de embarque para esta reserva.");
+            snprintf((*choices)[0], max_length, "Error No hay nuevas tarjetas de embarque para esta reserva.");
             *n_choices = 1;
         }
         else
@@ -196,7 +215,7 @@ void results_bpass(char *bookID,
         *n_choices = 1;
     }
 
-    /* LIMPIEZA */
+    /* Limpieza */
     SQLCloseCursor(stmt_tickets);
     SQLFreeHandle(SQL_HANDLE_STMT, stmt_tickets);
     SQLFreeHandle(SQL_HANDLE_STMT, stmt_seat);

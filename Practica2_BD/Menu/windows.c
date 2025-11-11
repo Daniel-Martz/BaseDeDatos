@@ -4,37 +4,37 @@
 */
 #include "windows.h"
 
-
 static WINDOW *create_newwin(int height, int width, int starty, int startx,
-                      char *title) {
+                             char *title)
+{
     /** Create a window and draw a title
-    *
-    * @param height: window  height
-    * @param width: window width
-    * @param starty: position of left top corner (absolute-y)
-    * @param startx: position of left top corner (absolute-x)
-    * @param title: window title
-    *
-    * @return pointer to window structure
-    */
+     *
+     * @param height: window  height
+     * @param width: window width
+     * @param starty: position of left top corner (absolute-y)
+     * @param startx: position of left top corner (absolute-x)
+     * @param title: window title
+     *
+     * @return pointer to window structure
+     */
     WINDOW *local_win = NULL;
     local_win = newwin(height, width, starty, startx);
     assert(local_win != NULL);
     keypad(local_win, TRUE);
-    box(local_win, 0, 0);  /* 0, 0 gives default characters
-					            * for the vertical and horizontal
-                                * lines			*/
-    (void) mvwaddstr(local_win, 0, 2, title);
-    (void) wrefresh(local_win);        /* Show that box */
+    box(local_win, 0, 0); /* 0, 0 gives default characters
+                           * for the vertical and horizontal
+                           * lines			*/
+    (void)mvwaddstr(local_win, 0, 2, title);
+    (void)wrefresh(local_win); /* Show that box */
     return local_win;
 }
 
 static void make_form(int n_choices,
-               FIELD ***items,
-               char **choices,
-               FORM **form,
-               WINDOW *win,
-               _Windows *windows)
+                      FIELD ***items,
+                      char **choices,
+                      FORM **form,
+                      WINDOW *win,
+                      _Windows *windows)
 /** Auxiliary function to create a form
  *
  * @param n_choices: number of items in the menu
@@ -49,21 +49,25 @@ static void make_form(int n_choices,
     int cury = 0, curx = 1;
     FIELD *field;
     /* alloc memory fo fiel, each item will be stored in a field */
-    *items = (FIELD **) calloc(2 * n_choices + 1, sizeof(FIELD * ));
+    *items = (FIELD **)calloc(2 * n_choices + 1, sizeof(FIELD *));
     assert(items);
     (*items)[n_choices * 2] = NULL;
 
     /* place the fields in the window */
-    for (i = 0; i < n_choices * 2; i++) {
+    for (i = 0; i < n_choices * 2; i++)
+    {
         (*items)[i] = new_field(1, 7, cury, curx, 0, 0);
         field = (*items)[i];
         assert(field);
-        if (i % 2 == 1) { /** odd fields are values */
+        if (i % 2 == 1)
+        { /** odd fields are values */
             cury = cury + 1;
             curx = 1;
             set_field_opts(field, O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
             set_field_back(field, A_UNDERLINE);
-        } else {  /** even field are labels */
+        }
+        else
+        { /** even field are labels */
             set_field_buffer(field, 0, choices[i / 2]);
             set_field_opts(field, O_VISIBLE | O_PUBLIC | O_AUTOSKIP);
             curx = 9;
@@ -74,15 +78,14 @@ static void make_form(int n_choices,
     /* attach form to window */
     set_form_win(*form, win);
     set_form_sub(*form,
-                 derwin(win, windows->terminal_nrows -
-                             2 * windows->height_menu_win - 4,
+                 derwin(win, windows->terminal_nrows - 2 * windows->height_menu_win - 4,
                         windows->width_form_win - 3, 2, 2));
     post_form(*form);
 }
 
 static void create_form(_Windows *windows,
-                 __attribute__((unused)) _Menus *menus,
-                 _Forms *forms, _Panels *panels)
+                        __attribute__((unused)) _Menus *menus,
+                        _Forms *forms, _Panels *panels)
 /** Create form window that may display either
  * a search or a bpass form
  *
@@ -92,15 +95,17 @@ static void create_form(_Windows *windows,
     int n_choices = 0;
     /* create windows */
     windows->form_bpass_win =
-            create_newwin(
-                    windows->terminal_nrows -
-                    2 * windows->height_menu_win - 1, windows->width_form_win,
-                    windows->height_menu_win + 0, 0, windows->form_bpass_title);
+        create_newwin(
+            windows->terminal_nrows -
+                2 * windows->height_menu_win - 1,
+            windows->width_form_win,
+            windows->height_menu_win + 0, 0, windows->form_bpass_title);
     windows->form_search_win =
-            create_newwin(
-                    windows->terminal_nrows -
-                    2 * windows->height_menu_win - 1, windows->width_form_win,
-                    windows->height_menu_win + 0, 0, windows->form_search_title);
+        create_newwin(
+            windows->terminal_nrows -
+                2 * windows->height_menu_win - 1,
+            windows->width_form_win,
+            windows->height_menu_win + 0, 0, windows->form_search_title);
 
     /* create forms*/
     /* 1) search form */
@@ -128,11 +133,11 @@ static void create_form(_Windows *windows,
     panels->bpass_panel = new_panel(windows->form_bpass_win);
     panels->search_panel = new_panel(windows->form_search_win);
     update_panels();
-    doupdate();  /* panel refresh */
+    doupdate(); /* panel refresh */
 
-    (void) refresh();
-    (void) wrefresh(windows->form_search_win);
-    (void) wrefresh(windows->menu_win);
+    (void)refresh();
+    (void)wrefresh(windows->form_search_win);
+    (void)wrefresh(windows->menu_win);
 }
 
 static void create_out(_Windows *windows, _Menus *menu)
@@ -147,9 +152,9 @@ static void create_out(_Windows *windows, _Menus *menu)
     int i = 0;
 
     windows->rows_out_win =
-            windows->terminal_nrows - 2 * windows->height_menu_win - 1;
+        windows->terminal_nrows - 2 * windows->height_menu_win - 1;
     windows->cols_out_win =
-            windows->terminal_ncols - windows->width_form_win - 1;
+        windows->terminal_ncols - windows->width_form_win - 1;
     windows->out_win = create_newwin(windows->rows_out_win,
                                      windows->cols_out_win,
                                      windows->height_menu_win + 0,
@@ -157,11 +162,11 @@ static void create_out(_Windows *windows, _Menus *menu)
                                      windows->out_title);
 
     menu->out_win_choices =
-            (char **) calloc(windows->rows_out_win, sizeof(char *));
+        (char **)calloc(windows->rows_out_win, sizeof(char *));
 
     for (i = 0; i < windows->rows_out_win; i++)
         (menu->out_win_choices)[i] =
-                (char *) calloc(windows->cols_out_win, sizeof(char *));
+            (char *)calloc(windows->cols_out_win, sizeof(char *));
 }
 
 static void create_msg(_Windows *windows)
@@ -170,16 +175,15 @@ static void create_msg(_Windows *windows)
  */
 {
     windows->msg_win =
-            create_newwin(windows->height_menu_win + 1,
-                          windows->terminal_ncols,
-                          windows->terminal_nrows - windows->height_menu_win - 1,
-                          0, windows->msg_title);
+        create_newwin(windows->height_menu_win + 1,
+                      windows->terminal_ncols,
+                      windows->terminal_nrows - windows->height_menu_win - 1,
+                      0, windows->msg_title);
 }
-
 
 void write_msg(WINDOW *win, char *msg, int y, int x, char *title)
 /** write string msg in  window win, at position (y,x)
-*
+ *
  * @param win window
  * @param msg message
  * @param x message position (X)
@@ -190,13 +194,13 @@ void write_msg(WINDOW *win, char *msg, int y, int x, char *title)
         x = 2;
     if (y < 0)
         y = 2;
-    (void) wclear(win);
+    (void)wclear(win);
     /* since we cleared the box we need to repaint it */
-    (void) box(win, 0, 0);
-    (void) mvwaddstr(win, 0, 2, title);
+    (void)box(win, 0, 0);
+    (void)mvwaddstr(win, 0, 2, title);
     /* write message */
-    (void) mvwaddstr(win, y, x, msg);
-    (void) wrefresh(win);
+    (void)mvwaddstr(win, y, x, msg);
+    (void)wrefresh(win);
 }
 
 static void create_menu(_Windows *windows, _Menus *menus)
@@ -211,12 +215,13 @@ static void create_menu(_Windows *windows, _Menus *menus)
                                       windows->menu_title);
     /* create menu */
     n_choices = menus->no_items;
-    menus->menuitems = (ITEM **) calloc(n_choices + 1, sizeof(ITEM * ));
-    for (i = 0; i < n_choices; i++) {
+    menus->menuitems = (ITEM **)calloc(n_choices + 1, sizeof(ITEM *));
+    for (i = 0; i < n_choices; i++)
+    {
         (menus->menuitems)[i] = new_item(menus->choices[i], " ");
         assert((menus->menuitems)[i] != NULL);
     }
-    (menus->menuitems)[i] = (ITEM *) NULL;
+    (menus->menuitems)[i] = (ITEM *)NULL;
     menus->menu = new_menu(menus->menuitems);
     assert(menus->menu != NULL && windows->menu_win != NULL);
     keypad(windows->menu_win, TRUE);
@@ -239,39 +244,37 @@ static void create_menu(_Windows *windows, _Menus *menus)
     wrefresh(windows->menu_win);
 }
 
-
 void _initsrc(_Windows *windows,
               _Menus *menus,
               _Forms *forms,
               _Panels *panels)
 /** initialize windows
-*
-* @param windows structure with window information
-* @param menus
-* @param forms
-* @param panels
-**/
+ *
+ * @param windows structure with window information
+ * @param menus
+ * @param forms
+ * @param panels
+ **/
 {
-    windows->main_win = initscr();  /* curses call to initialize window */
-    keypad(stdscr, TRUE);           /* We get F1, F2 etc..          */
+    windows->main_win = initscr(); /* curses call to initialize window */
+    keypad(stdscr, TRUE);          /* We get F1, F2 etc..          */
     /* cbreak put the terminal into cbreak() mode.
      * In this mode, characters typed by the user
      * are immediately available to the program,
      * and erase/kill character-processing is not performed */
-    (void) cbreak();  /* no waiting for Enter key */
-    (void) noecho();  /* set no echoing as you type*/
+    (void)cbreak(); /* no waiting for Enter key */
+    (void)noecho(); /* set no echoing as you type*/
     /* curses call to find size of window */
     getmaxyx(windows->main_win, windows->terminal_nrows,
              windows->terminal_ncols);
-    (void) clear();  /* call to clear screen, send cursor to position (0,0) */
-    (void) refresh();  /* curses call to implement all changes since last refresh */
+    (void)clear();   /* call to clear screen, send cursor to position (0,0) */
+    (void)refresh(); /* curses call to implement all changes since last refresh */
 
     create_menu(windows, menus);
     create_form(windows, menus, forms, panels);
     create_out(windows, menus);
     create_msg(windows);
 }
-
 
 void print_out(WINDOW *win,
                char **choices,
@@ -287,21 +290,22 @@ void print_out(WINDOW *win,
  * @param title
  */
 {
-    int x=0, y=0, i=0;
+    int x = 0, y = 0, i = 0;
     x = 2;
     y = 1;
-    (void) box(win, 0, 0);
-    (void) mvwaddstr(win, 0, 2, title);
-    for (i = 0; i < menuitems; ++i) {
+    (void)box(win, 0, 0);
+    (void)mvwaddstr(win, 0, 2, title);
+    for (i = 0; i < menuitems; ++i)
+    {
         if (highlight == i) /* High light the present choice  */
         {
-            (void) wattron(win, A_REVERSE);  /** set reverse attribute on */
-            (void) mvwprintw(win, y, x, "%s", choices[i]);
-            (void) wattroff(win, A_REVERSE); /** set reverse attribute off */
-        } else
-            (void) mvwprintw(win, y, x, "%s", choices[i]);
+            (void)wattron(win, A_REVERSE); /** set reverse attribute on */
+            (void)mvwprintw(win, y, x, "%s", choices[i]);
+            (void)wattroff(win, A_REVERSE); /** set reverse attribute off */
+        }
+        else
+            (void)mvwprintw(win, y, x, "%s", choices[i]);
         y += 1;
     }
-    (void) wrefresh(win);
+    (void)wrefresh(win);
 }
-

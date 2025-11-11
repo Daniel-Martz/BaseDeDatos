@@ -2,7 +2,8 @@
 #define AUX_H
 
 /* CONNECTION PARAMETERS, ADAPT TO YOUR SCENARIO */
-
+#include <sql.h>
+#include <sqlext.h>
 #define CONNECTION_PARS "DRIVER=PostgreSQL ANSI;DATABASE=flight;SERVER=localhost;PORT=5432;UID=alumnodb;PWD=alumnodb;"
 
 /* REPORT OF THE MOST RECENT ERROR USING HANDLE handle */
