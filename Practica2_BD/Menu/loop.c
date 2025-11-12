@@ -310,9 +310,7 @@ void loop(_Windows *windows, _Menus *menus, _Forms *forms, _Panels *panels)
                     enterKey = FALSE;
                     continue;
                 }
-
                 linea = menus->out_win_choices[out_highlight];
-
                 if (out_highlight == 0 &&
                     (strncmp(linea, "Error", 5) == 0))
                 {
@@ -331,7 +329,6 @@ void loop(_Windows *windows, _Menus *menus, _Forms *forms, _Panels *panels)
                                    ac1_str,
                                    &flight_id2,
                                    ac2_str);
-
                     /* comprueba si leyó 8 elementos */
                     if (n < 8)
                     {

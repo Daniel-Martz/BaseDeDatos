@@ -1,54 +1,54 @@
-==197307== Memcheck, a memory error detector
-==197307== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
-==197307== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
-==197307== Command: ./menu
-==197307== 
-==197307== 
-==197307== HEAP SUMMARY:
-==197307==     in use at exit: 156,764 bytes in 741 blocks
-==197307==   total heap usage: 144,244 allocs, 143,503 frees, 15,156,335 bytes allocated
-==197307== 
-==197307== 9 bytes in 1 blocks are possibly lost in loss record 77 of 282
-==197307==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==197307==    by 0x4A1035E: strdup (strdup.c:42)
-==197307==    by 0x49166A5: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x10E72C: _initsrc (windows.c:259)
-==197307==    by 0x10B215: main (menu.c:214)
-==197307== 
-==197307== 24 bytes in 1 blocks are possibly lost in loss record 174 of 282
-==197307==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==197307==    by 0x4A84571: tsearch (tsearch.c:337)
-==197307==    by 0x49166C7: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x10E72C: _initsrc (windows.c:259)
-==197307==    by 0x10B215: main (menu.c:214)
-==197307== 
-==197307== 168 bytes in 1 blocks are possibly lost in loss record 246 of 282
-==197307==    at 0x484D953: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==197307==    by 0x491661E: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
-==197307==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
-==197307==    by 0x10E72C: _initsrc (windows.c:259)
-==197307==    by 0x10B215: main (menu.c:214)
-==197307== 
-==197307== LEAK SUMMARY:
-==197307==    definitely lost: 0 bytes in 0 blocks
-==197307==    indirectly lost: 0 bytes in 0 blocks
-==197307==      possibly lost: 201 bytes in 3 blocks
-==197307==    still reachable: 156,563 bytes in 738 blocks
-==197307==         suppressed: 0 bytes in 0 blocks
-==197307== Reachable blocks (those to which a pointer was found) are not shown.
-==197307== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==197307== 
-==197307== Use --track-origins=yes to see where uninitialised values come from
-==197307== For lists of detected and suppressed errors, rerun with: -s
-==197307== ERROR SUMMARY: 10 errors from 7 contexts (suppressed: 0 from 0)
+==9288== Memcheck, a memory error detector
+==9288== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==9288== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==9288== Command: ./menu
+==9288== 
+==9288== 
+==9288== HEAP SUMMARY:
+==9288==     in use at exit: 143,968 bytes in 767 blocks
+==9288==   total heap usage: 36,677 allocs, 35,910 frees, 4,385,490 bytes allocated
+==9288== 
+==9288== 9 bytes in 1 blocks are possibly lost in loss record 86 of 300
+==9288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==9288==    by 0x4A1035E: strdup (strdup.c:42)
+==9288==    by 0x49166A5: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x10E72C: _initsrc (windows.c:259)
+==9288==    by 0x10B215: main (menu.c:214)
+==9288== 
+==9288== 24 bytes in 1 blocks are possibly lost in loss record 189 of 300
+==9288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==9288==    by 0x4A84571: tsearch (tsearch.c:337)
+==9288==    by 0x49166C7: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x10E72C: _initsrc (windows.c:259)
+==9288==    by 0x10B215: main (menu.c:214)
+==9288== 
+==9288== 168 bytes in 1 blocks are possibly lost in loss record 264 of 300
+==9288==    at 0x484D953: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==9288==    by 0x491661E: ??? (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x491B278: _nc_tiparm (in /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4)
+==9288==    by 0x48E8B53: newterm_sp (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E94D4: newterm (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x48E9567: initscr (in /usr/lib/x86_64-linux-gnu/libncurses.so.6.4)
+==9288==    by 0x10E72C: _initsrc (windows.c:259)
+==9288==    by 0x10B215: main (menu.c:214)
+==9288== 
+==9288== LEAK SUMMARY:
+==9288==    definitely lost: 0 bytes in 0 blocks
+==9288==    indirectly lost: 0 bytes in 0 blocks
+==9288==      possibly lost: 201 bytes in 3 blocks
+==9288==    still reachable: 143,767 bytes in 764 blocks
+==9288==         suppressed: 0 bytes in 0 blocks
+==9288== Reachable blocks (those to which a pointer was found) are not shown.
+==9288== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==9288== 
+==9288== Use --track-origins=yes to see where uninitialised values come from
+==9288== For lists of detected and suppressed errors, rerun with: -s
+==9288== ERROR SUMMARY: 10 errors from 7 contexts (suppressed: 0 from 0)

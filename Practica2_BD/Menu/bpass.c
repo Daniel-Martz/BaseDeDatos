@@ -17,7 +17,7 @@
  * @param n_choices     Puntero para almacenar el número de resultados.
  * @param choices       Array de cadenas para almacenar los resultados.
  * @param max_length    Longitud máxima de cada cadena en choices.
- * @param max_rows      Número máximo de filas a almacenar en choices.
+ * @param max_rows      Número máximo de filas a almacenar en choices..
  */
 void results_bpass(char *bookID,
                    int *n_choices, char ***choices,
