@@ -3,29 +3,36 @@
 CC = gcc
 
 # Flags de compilación
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -ansi
 
 # Nombre del ejecutable
-TARGET = library
+TARGET = library 
 
 # Archivos fuente
-SRCS = Library.c
+SRCS = library.c
 
 # Archivos objeto
-OBJS = $(SRCS:.c=.o)
+OBJS = library.o
 
 # Regla por defecto
 all: $(TARGET)
 
 # Compilar el ejecutable
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+library: library.o
+	$(CC) $(CFLAGS) -o library $(OBJS)
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(TARGET)
 
+clean_bin:
+	rm -f *.db *.ind *.lst
+
 # Regla de ejecución con parámetros
 run: $(TARGET)
-	./$(TARGET) best\ fit test
+	./$(TARGET) best fit test
+
+run_test: library
+	expect ./add_data_test.sh

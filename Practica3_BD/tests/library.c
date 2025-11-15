@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define ISBNSIZE 16
+#define LIB_SIZE 80
 
 typedef struct{
     int bookID;
@@ -50,10 +51,19 @@ void freeArray(Array *a) {
 
 int main(int argc, char *argv[]) {
     char *raiz = NULL;
+    char aux[LIB_SIZE];
     char datos[256], indice[256], lista[256];
+    char *args = NULL;
+    char *token = NULL;
+    long int offset;
     FILE *db = NULL;
     FILE *ind = NULL;
     FILE *lst = NULL;
+    size_t size = 0;
+    size_t l1,l2;
+    book b;
+    indexbook idx;
+    int i = 0;
 
     if (argc != 3) {
         printf("Uso: %s <estrategia> <nombre_raiz>\n", argv[0]);
@@ -62,13 +72,12 @@ int main(int argc, char *argv[]) {
     }
 
     char *estrategia = argv[1];
-    if (strcmp(estrategia, "best") != 0 && strcmp(estrategia, "first") != 0 && strcmp(estrategia, "worst") != 0 &&
-        strcmp(estrategia, "best fit") != 0 && strcmp(estrategia, "first fit") != 0 && strcmp(estrategia, "worst fit") != 0) {
+    if (strcmp(estrategia, "best_fit") != 0 && strcmp(estrategia, "first_fit") != 0 && strcmp(estrategia, "worst_fit") != 0) {
         printf("Estrategia no valida. Debe ser: best fit, first fit o worst fit\n");
         return 1;
     }
 
-    *raiz = argv[2];
+    raiz = argv[2];
 
     /*Creamos nombres de ficheros*/
     snprintf(datos, sizeof(datos), "%s.db", raiz);
@@ -81,23 +90,116 @@ int main(int argc, char *argv[]) {
     printf("Indice: %s\n", indice);
     printf("Listado: %s\n", lista);
 
-    db = fopen(datos, "w");
+    db = fopen(datos, "w+b");
     if (!db) {
         perror("Error al crear el fichero de datos");
         return 1;
     }
-        ind = fopen(datos, "w");
+        ind = fopen(indice, "w+b");
     if (!ind) {
         perror("Error al crear el fichero de datos");
         return 1;
     }
-        lst = fopen(datos, "w");
+        lst = fopen(lista, "w+b");
     if (!lst) {
         perror("Error al crear el fichero de datos");
         return 1;
     }
 
-    while()
+    while (1) {
+        printf("Type command and argument/s. Type exit to stop\n");
+        printf("> ");
+        fflush(stdout);
+
+        if (!fgets(aux, LIB_SIZE, stdin))
+            break;
+
+        /* eliminar salto de línea */
+        aux[strcspn(aux, "\n")] = 0;
+
+        /* comando exit */
+        if (strcmp(aux, "exit") == 0) {
+            printf("exit\n");
+            break;
+        }
+
+        /* comando add */
+        if (strncmp(aux, "add ", 4) == 0) {
+            args = aux + 4;
+
+            /* dividir por | y empiezo por bookID*/
+            token = strtok(args, "|");
+            if (!token) continue;
+            b.bookID = atoi(token);
+
+            /*Ahora el isbn*/
+            token = strtok(NULL, "|");
+            strncpy(b.isbn, token, ISBNSIZE);
+
+            /*Ahora el titulo con el separador |*/
+            token = strtok(NULL, "|");
+            if(!(b.title = malloc(strlen(token) + 1))){
+                fprintf(stderr, "Error reservando memoria para title");
+                return -1;
+            } 
+            sprintf(b.title, "%s|", token);
+
+            /*Por ultimo el autor*/
+            token = strtok(NULL, "|");
+            b.printedBy = strdup(token);
+
+            /* calcular offset actual del fichero */
+            fseek(db, 0, SEEK_END); /* Muevo puntero al final del archivo*/
+            offset = ftell(db); /*Saco la posición donde estoy*/
+
+            /*Calculamos lo que va a ocupar*/
+            l1 = strlen(b.title);
+            l2 = strlen(b.printedBy);
+            size = sizeof(int) + sizeof(char)*ISBNSIZE + sizeof(char)*l1 + sizeof(char)*l2;
+
+            /* escribir registro en .db */
+            fwrite(&size, sizeof(size_t), 1, db); /*Primero lo que ocupa*/
+            fwrite(&b.bookID, sizeof(int), 1, db); /*Ahora escribimos el ID*/
+            fwrite(b.isbn, sizeof(char), ISBNSIZE, db); /*El isbn*/
+            fwrite(b.title, sizeof(char), l1, db); /*El titulo*/
+            fwrite(b.printedBy, sizeof(char), l2, db); /*El autor*/
+
+            /* escribir entrada en .ind */
+            indexbook idx;
+            idx.key = b.bookID;
+            idx.offset = offset;
+            idx.size = size;
+
+            fwrite(&idx, sizeof(indexbook), 1, ind);
+
+            printf("Record with BookID=%d has been added to the database\n", b.bookID);
+
+            free(b.title);
+            free(b.printedBy);
+
+            continue;
+        }
+
+        /* comando printInd */
+        if (strcmp(aux, "printInd") == 0) {
+            rewind(ind);
+
+            while (fread(&idx, sizeof(indexbook), 1, ind) == 1) {
+                printf("Entry #%d\n", i);
+                printf("    key: #%d\n", idx.key);
+                printf("    offset: #%ld\n", idx.offset);
+                i++;
+            }
+            continue;
+        }
+
+        printf("Unknown command.\n");
+    }
+
+    fclose(db);
+    fclose(ind);
+    fclose(lst);
+
     return 0;
 }
 
