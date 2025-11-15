@@ -28,7 +28,7 @@ clean:
 	rm -f $(OBJS) $(TARGET)
 
 clean_bin:
-	rm -f *.db *.ind *.lst
+	rm -f test.db test.ind test.lst
 
 # Regla de ejecución con parámetros
 run: $(TARGET)
