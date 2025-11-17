@@ -13,7 +13,7 @@ typedef struct{
 } book;
 
 typedef struct{
-    int key;         /* book ISBN */
+    int key;         /* book id*/
     long int offset; /* book is stored in disk at this position */
     size_t size;     /* book record size. This is a redundant field that helps in the implementation */
 } indexbook;
@@ -46,7 +46,7 @@ void insertArray(Array *a, indexbook element) {
         pos++;
 
     if (pos < a->used && a->array[pos].key == element.key) {
-        printf("ERROR: clave duplicada\n");
+        printf("Record with BookID=%i exists\n", element.key);
         return;
     }
     /* Hago hueco con memmove*/
@@ -108,10 +108,11 @@ int main(int argc, char *argv[]) {
 
     /*inicializo array para indices*/
     initArray(&indices, 2);
-    if(!(&indices)){
-        perror("Error al crear el array de indices");
+    if (indices.array == NULL) {
+        perror("Error al crear el array de índices");
         return 1;
     }
+
 
     db = fopen(datos, "w+b");
     if (!db) {
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
 
             /*Ahora el titulo con el separador |*/
             token = strtok(NULL, "|");
-            if(!(b.title = malloc(strlen(token) + 1))){
+            if(!(b.title = malloc(strlen(token) + 2))){
                 fprintf(stderr, "Error reservando memoria para title");
                 return -1;
             } 
@@ -209,6 +210,7 @@ int main(int argc, char *argv[]) {
                 printf("Entry #%d\n", i);
                 printf("    key: #%d\n", indices.array[i].key);
                 printf("    offset: #%ld\n", indices.array[i].offset);
+                printf("    size: #%ld\n", indices.array[i].size);
             }
             continue;
         }
@@ -216,7 +218,9 @@ int main(int argc, char *argv[]) {
         printf("Unknown command.\n");
     }
     for(i=0;i<indices.used; i++) {
-        fwrite(&indices.array[i], sizeof(indexbook), 1, ind);
+        fwrite(&indices.array[i].key, sizeof(int), 1, ind);
+        fwrite(&indices.array[i].offset, sizeof(long int), 1, ind);
+        fwrite(&indices.array[i].size, sizeof(size_t), 1, ind);
     }
 
     fclose(db);
