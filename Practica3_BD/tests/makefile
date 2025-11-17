@@ -34,5 +34,8 @@ clean_bin:
 run: $(TARGET)
 	./$(TARGET) best fit test
 
-run_test: library
+run_test1: library
 	expect ./add_data_test.sh
+
+run_test2: library
+	expect ./add_index_test.sh

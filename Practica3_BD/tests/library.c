@@ -18,28 +18,43 @@ typedef struct{
     size_t size;     /* book record size. This is a redundant field that helps in the implementation */
 } indexbook;
 
+/*Estructura y funciones modificadas para guardar en el array indices y no solo enteros*/
 typedef struct {
-    int *array;
+    indexbook *array;
     size_t used;
     size_t size;
 } Array;
 
 void initArray(Array *a, size_t initialSize) {
     /* create initial empty array of size initialSize */
-    a->array = malloc(initialSize * sizeof(int));
+    a->array = malloc(initialSize * sizeof(indexbook));
     a->used = 0;
     a->size = initialSize;
 }
 
-void insertArray(Array *a, int element) {
+void insertArray(Array *a, indexbook element) {
     /* insert item "element" in array
        a->used is the number of used entries,
        a->size is the number of entries */
+    size_t pos = 0;
+
     if (a->used == a->size) {
         a->size *= 2;
-        a->array = realloc(a->array, a->size * sizeof(int));
+        a->array = realloc(a->array, a->size * sizeof(indexbook));
     }
-    a->array[a->used++] = element;
+    while (pos < a->used && a->array[pos].key < element.key)
+        pos++;
+
+    if (pos < a->used && a->array[pos].key == element.key) {
+        printf("ERROR: clave duplicada\n");
+        return;
+    }
+    /* Hago hueco con memmove*/
+    memmove(&a->array[pos+1], &a->array[pos], (a->used - pos) * sizeof(indexbook));
+
+    /*inserto */
+    a->array[pos] = element;
+    a->used++;
 }
 
 void freeArray(Array *a) {
@@ -63,6 +78,7 @@ int main(int argc, char *argv[]) {
     size_t l1,l2;
     book b;
     indexbook idx;
+    Array indices;
     int i = 0;
 
     if (argc != 3) {
@@ -89,6 +105,13 @@ int main(int argc, char *argv[]) {
     printf("Datos: %s\n", datos);
     printf("Indice: %s\n", indice);
     printf("Listado: %s\n", lista);
+
+    /*inicializo array para indices*/
+    initArray(&indices, 2);
+    if(!(&indices)){
+        perror("Error al crear el array de indices");
+        return 1;
+    }
 
     db = fopen(datos, "w+b");
     if (!db) {
@@ -164,13 +187,12 @@ int main(int argc, char *argv[]) {
             fwrite(b.title, sizeof(char), l1, db); /*El titulo*/
             fwrite(b.printedBy, sizeof(char), l2, db); /*El autor*/
 
-            /* escribir entrada en .ind */
-            indexbook idx;
+            /* escribir entrada la lista de indices */
             idx.key = b.bookID;
             idx.offset = offset;
             idx.size = size;
 
-            fwrite(&idx, sizeof(indexbook), 1, ind);
+            insertArray(&indices, idx);
 
             printf("Record with BookID=%d has been added to the database\n", b.bookID);
 
@@ -182,23 +204,25 @@ int main(int argc, char *argv[]) {
 
         /* comando printInd */
         if (strcmp(aux, "printInd") == 0) {
-            rewind(ind);
 
-            while (fread(&idx, sizeof(indexbook), 1, ind) == 1) {
+            for(i=0;i<indices.used; i++) {
                 printf("Entry #%d\n", i);
-                printf("    key: #%d\n", idx.key);
-                printf("    offset: #%ld\n", idx.offset);
-                i++;
+                printf("    key: #%d\n", indices.array[i].key);
+                printf("    offset: #%ld\n", indices.array[i].offset);
             }
             continue;
         }
 
         printf("Unknown command.\n");
     }
+    for(i=0;i<indices.used; i++) {
+        fwrite(&indices.array[i], sizeof(indexbook), 1, ind);
+    }
 
     fclose(db);
     fclose(ind);
     fclose(lst);
+    freeArray(&indices);
 
     return 0;
 }
