@@ -113,7 +113,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-
     db = fopen(datos, "w+b");
     if (!db) {
         perror("Error al crear el fichero de datos");
@@ -172,14 +171,14 @@ int main(int argc, char *argv[]) {
             token = strtok(NULL, "|");
             b.printedBy = strdup(token);
 
-            /* calcular offset actual del fichero */
-            fseek(db, 0, SEEK_END); /* Muevo puntero al final del archivo*/
-            offset = ftell(db); /*Saco la posición donde estoy*/
-
             /*Calculamos lo que va a ocupar*/
             l1 = strlen(b.title);
             l2 = strlen(b.printedBy);
             size = sizeof(int) + sizeof(char)*ISBNSIZE + sizeof(char)*l1 + sizeof(char)*l2;
+
+                /* calcular offset actual del fichero */
+            fseek(db, 0, SEEK_END); /* Muevo puntero al final del archivo*/
+            offset = ftell(db); /*Saco la posición donde estoy*/
 
             /* escribir registro en .db */
             fwrite(&size, sizeof(size_t), 1, db); /*Primero lo que ocupa*/
@@ -217,6 +216,8 @@ int main(int argc, char *argv[]) {
 
         printf("Unknown command.\n");
     }
+
+
     for(i=0;i<indices.used; i++) {
         fwrite(&indices.array[i].key, sizeof(int), 1, ind);
         fwrite(&indices.array[i].offset, sizeof(long int), 1, ind);
