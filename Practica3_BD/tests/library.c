@@ -120,7 +120,7 @@ void load_ind_to_array(Array_add *a, FILE *binario)
     indexbook *ind_aux;
     if (a == NULL || binario == NULL)
     {
-        return 0;
+        return;
     }
 
     ind_aux = (indexbook *)malloc(sizeof(indexbook));
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
     if (argc != 3)
     {
         printf("Missing argument");
-        /*printf("Uso: %s <estrategia> <nombre_raiz>\n", argv[0]);
-        printf("Estrategias posibles: best fit, first fit, worst fit\n");*/
+        printf("Uso: %s <estrategia> <nombre_raiz>\n", argv[0]);
+        printf("Estrategias posibles: best fit, first fit, worst fit\n");
         return 0;
     }
 
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     if (strcmp(estrategia, "best_fit") != 0 && strcmp(estrategia, "first_fit") != 0 && strcmp(estrategia, "worst_fit") != 0)
     {
         printf("Unknown search strategy unknown_search_strategy");
-        /*printf("Estrategia no valida. Debe ser: best fit, first fit o worst fit\n");*/
+        printf("Estrategia no valida. Debe ser: best fit, first fit o worst fit\n");
         return 0;
     }
 
