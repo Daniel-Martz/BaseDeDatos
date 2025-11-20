@@ -218,7 +218,25 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+<<<<<<< Updated upstream
     load_ind_to_array(&indices, ind);
+=======
+    db = fopen(datos, "wb");
+    if (!db) {
+        perror("Error al crear el fichero de datos");
+        return 1;
+    }
+        ind = fopen(indice, "wb");
+    if (!ind) {
+        perror("Error al crear el fichero de datos");
+        return 1;
+    }
+        lst = fopen(lista, "wb");
+    if (!lst) {
+        perror("Error al crear el fichero de datos");
+        return 1;
+    }
+>>>>>>> Stashed changes
 
     while (1)
     {
