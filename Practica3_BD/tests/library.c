@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define ISBNSIZE 16
-#define LIB_SIZE 80
+#define LIB_SIZE 80 /* Tamano maximo que va a ocupar un libro en la memoria*/
 #define BESTFIT 0
 #define WORSTFIT 1
 #define FIRSTFIT 2
@@ -81,7 +81,7 @@ void freeArray(Array_add *a)
     a->used = a->size = 0;
 }
 
-void delete(Array_add *a, int pos)
+void deleteArray(Array_add *a, int pos)
 {
     if (pos < 0 || pos >= (int)a->used)
         return;
@@ -149,18 +149,20 @@ int main(int argc, char *argv[])
     char datos[256], indice[256], lista[256];
     char *args = NULL;
     char *token = NULL;
+    char buffer[256];
     long int offset;
     FILE *db = NULL;
     FILE *ind = NULL;
     FILE *lst = NULL;
     size_t size = 0;
     size_t l1, l2;
-    book b;
+    book book_aux;
     indexbook idx;
     Array_add indices;
     int i = 0;
     int aux_id;
     int posicion;
+    indexbook aux_ind;
 
     if (argc != 3)
     {
@@ -220,7 +222,7 @@ int main(int argc, char *argv[])
 
     load_ind_to_array(&indices, ind);
 
- while (1)
+    while (1)
     {
         printf("Type command and argument/s. Type exit to stop\n");
         printf("> ");
@@ -248,33 +250,35 @@ int main(int argc, char *argv[])
             token = strtok(args, "|");
             if (!token)
                 continue;
-            b.bookID = atoi(token);
+            book_aux.bookID = atoi(token);
+
+            /*falta ver si ya esta insertado*/
 
             /*Ahora el isbn*/
             token = strtok(NULL, "|");
-            strncpy(b.isbn, token, ISBNSIZE);
+            strncpy(book_aux.isbn, token, ISBNSIZE);
 
             /*Ahora el titulo con el separador |*/
             token = strtok(NULL, "|");
-            if (!(b.title = malloc(strlen(token) + 2)))
+            if (!(book_aux.title = malloc(strlen(token) + 2)))
             {
                 fprintf(stderr, "Error reservando memoria para title");
                 return -1;
             }
-            sprintf(b.title, "%s|", token);
+            sprintf(book_aux.title, "%s|", token);
 
             /*Por ultimo el autor*/
             token = strtok(NULL, "|");
-            if (!(b.printedBy = malloc(strlen(token) + 1)))
+            if (!(book_aux.printedBy = malloc(strlen(token) + 1)))
             {
                 fprintf(stderr, "Error reservando memoria para title");
                 return -1;
             }
-            sprintf(b.printedBy, "%s", token);
+            sprintf(book_aux.printedBy, "%s", token);
 
             /*Calculamos lo que va a ocupar*/
-            l1 = strlen(b.title);
-            l2 = strlen(b.printedBy);
+            l1 = strlen(book_aux.title);
+            l2 = strlen(book_aux.printedBy);
             size = sizeof(int) + sizeof(char) * ISBNSIZE + sizeof(char) * l1 + sizeof(char) * l2;
 
             /* calcular offset actual del fichero */
@@ -282,23 +286,23 @@ int main(int argc, char *argv[])
             offset = ftell(db);     /*Saco la posición donde estoy*/
 
             /* escribir registro en .db */
-            fwrite(&size, sizeof(size_t), 1, db);       /*Primero lo que ocupa*/
-            fwrite(&b.bookID, sizeof(int), 1, db);      /*Ahora escribimos el ID*/
-            fwrite(b.isbn, sizeof(char), ISBNSIZE, db); /*El isbn*/
-            fwrite(b.title, sizeof(char), l1, db);      /*El titulo*/
-            fwrite(b.printedBy, sizeof(char), l2, db);  /*El autor*/
+            fwrite(&size, sizeof(size_t), 1, db);              /*Primero lo que ocupa*/
+            fwrite(&book_aux.bookID, sizeof(int), 1, db);      /*Ahora escribimos el ID*/
+            fwrite(book_aux.isbn, sizeof(char), ISBNSIZE, db); /*El isbn*/
+            fwrite(book_aux.title, sizeof(char), l1, db);      /*El titulo*/
+            fwrite(book_aux.printedBy, sizeof(char), l2, db);  /*El autor*/
 
             /* escribir entrada la lista de indices */
-            idx.key = b.bookID;
+            idx.key = book_aux.bookID;
             idx.offset = offset;
             idx.size = size;
 
             insertArray(&indices, idx);
 
-            printf("Record with BookID=%d has been added to the database\n", b.bookID);
+            printf("Record with BookID=%d has been added to the database\n", book_aux.bookID);
 
-            free(b.title);
-            free(b.printedBy);
+            free(book_aux.title);
+            free(book_aux.printedBy);
 
             continue;
         }
@@ -318,6 +322,23 @@ int main(int argc, char *argv[])
             {
                 printf("Item with key %i does not exist", aux_id);
             }
+            
+            aux_ind = indices.array[posicion];
+            deleteArray(&indices, posicion);
+            
+            /*comando find buscar elemento en el archivo de datos binario y sacar todos sus elementos*/
+            /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
+            fseek(db, 0, aux_ind.offset + (int)sizeof(size_t));
+            fread(book_aux.bookID, (int)sizeof(int), 1, db);
+            fread(book_aux.isbn, ISBNSIZE, 1, db);
+            fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
+            buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = "\n";
+            token = strtok(buffer, "|");
+            strcpy(book_aux.title, token);
+            token = strtok(NULL, "\n");
+            strcpy(book_aux.printedBy, token);
+
+            fprintf ("%i|%s|%s|%s", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
         }
 
         /* comando printInd */
