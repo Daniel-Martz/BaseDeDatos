@@ -83,7 +83,7 @@ void freeArray(Array_add *a)
 
 void delete(Array_add *a, int pos)
 {
-    if (pos < 0 || pos >= a->used)
+    if (pos < 0 || pos >= (int)a->used)
         return;
 
     /* desplazamos todos los elementos hacia la izquierda */
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
         if (strcmp(aux, "printInd") == 0)
         {
 
-            for (i = 0; i < indices.used; i++)
+            for (i = 0; i < (int)indices.used; i++)
             {
                 printf("Entry #%d\n", i);
                 printf("    key: #%d\n", indices.array[i].key);
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
         printf("Unknown command.\n");
     }
 
-    for (i = 0; i < indices.used; i++)
+    for (i = 0; i < (int)indices.used; i++)
     {
         fwrite(&indices.array[i].key, sizeof(int), 1, ind);
         fwrite(&indices.array[i].offset, sizeof(long int), 1, ind);
