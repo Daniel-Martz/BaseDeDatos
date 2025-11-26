@@ -59,7 +59,7 @@ run_test5: library
 	expect ./add_delete_test_03.sh
 
 run_test6: library
-	expect ./add_delete_test_04.sh
+	expect ./add_delete_test_04.sh 
 
 run_test7: library
 	expect ./many_entries.sh

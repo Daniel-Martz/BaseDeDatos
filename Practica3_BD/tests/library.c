@@ -1,12 +1,13 @@
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define ISBNSIZE 16
 #define LIB_SIZE 80 /* Tamano maximo que va a ocupar un libro en la memoria*/
 #define BESTFIT 0
 #define WORSTFIT 1
 #define FIRSTFIT 2
+#define NO_STRAT -1
 
 typedef struct
 {
@@ -37,7 +38,15 @@ typedef struct
     size_t size;
 } Array_add;
 
-void initArray(Array_add *a, size_t initialSize)
+/*Estructura y funciones modificadas para guardar en el array indices y no solo enteros*/
+typedef struct
+{
+    indexdeletedbook *array;
+    size_t used;
+    size_t size;
+} Array_del;
+
+void initArray_add(Array_add *a, size_t initialSize)
 {
     /* create initial empty array of size initialSize */
     a->array = malloc(initialSize * sizeof(indexbook));
@@ -45,7 +54,7 @@ void initArray(Array_add *a, size_t initialSize)
     a->size = initialSize;
 }
 
-void insertArray(Array_add *a, indexbook element)
+void insertArray_add(Array_add *a, indexbook element)
 {
     /* insert item "element" in array
        a->used is the number of used entries,
@@ -73,7 +82,7 @@ void insertArray(Array_add *a, indexbook element)
     a->used++;
 }
 
-void freeArray(Array_add *a)
+void freeArray_add(Array_add *a)
 {
     /* free memory allocated for array */
     free(a->array);
@@ -81,7 +90,8 @@ void freeArray(Array_add *a)
     a->used = a->size = 0;
 }
 
-void deleteArray(Array_add *a, int pos)
+/*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
+void deleteArray_add(Array_add *a, int pos)
 {
     if (pos < 0 || pos >= (int)a->used)
         return;
@@ -92,6 +102,91 @@ void deleteArray(Array_add *a, int pos)
             (a->used - pos - 1) * sizeof(indexbook));
 
     a->used--;
+}
+
+void initArray_del(Array_del *a, size_t initialSize)
+{
+    /* create initial empty array of size initialSize */
+    a->array = malloc(initialSize * sizeof(indexdeletedbook));
+    a->used = 0;
+    a->size = initialSize;
+}
+
+void freeArray_del(Array_del *a)
+{
+    /* free memory allocated for array */
+    free(a->array);
+    a->array = NULL;
+    a->used = a->size = 0;
+}
+
+void insertArray_del_ff(Array_del *a, indexdeletedbook element)
+{
+    /* insert item "element" in array
+       a->used is the number of used entries,
+       a->size is the number of entries */
+    size_t pos = 0;
+
+    if (a->used == a->size)
+    {
+        a->size *= 2;
+        a->array = realloc(a->array, a->size * sizeof(indexdeletedbook));
+    }
+    while (pos < a->used && a->array[pos].register_size >= element.register_size)
+        pos++;
+
+    /* Hago hueco con memmove*/
+    memmove(&a->array[pos + 1], &a->array[pos], (a->used - pos) * sizeof(indexbook));
+
+    /*inserto */
+    a->array[pos] = element;
+    a->used++;
+}
+
+void insertArray_del_bf(Array_del *a, indexdeletedbook element)
+{
+    /* insert item "element" in array
+       a->used is the number of used entries,
+       a->size is the number of entries */
+    size_t pos = 0;
+
+    if (a->used == a->size)
+    {
+        a->size *= 2;
+        a->array = realloc(a->array, a->size * sizeof(indexdeletedbook));
+    }
+    while (pos < a->used && a->array[pos].register_size <= element.register_size)
+        pos++;
+
+    /* Hago hueco con memmove*/
+    memmove(&a->array[pos + 1], &a->array[pos], (a->used - pos) * sizeof(indexbook));
+
+    /*inserto */
+    a->array[pos] = element;
+    a->used++;
+}
+
+void insertArray_del_wf(Array_del *a, indexdeletedbook element)
+{
+    /* insert item "element" in array
+       a->used is the number of used entries,
+       a->size is the number of entries */
+    size_t pos = 0;
+
+    if (a->used == a->size)
+    {
+        a->size *= 2;
+        a->array = realloc(a->array, a->size * sizeof(indexdeletedbook));
+    }
+    while (pos < a->used && a->array[pos].register_size >= element.register_size)
+        pos++;
+
+    /* Hago hueco con memmove*/
+    memmove(&a->array[pos + 1], &a->array[pos], (a->used - pos) * sizeof(indexbook));
+
+    /*inserto */
+    a->array[pos] = element;
+    a->used++;
 }
 
 int bin_search(Array_add *a, int key)
@@ -114,7 +209,7 @@ int bin_search(Array_add *a, int key)
     return -1;
 }
 
-void load_ind_to_array(Array_add *a, FILE *binario)
+void load_ind_to_array_add(Array_add *a, FILE *binario)
 {
     int i, size, size_elemento, num_inds;
     indexbook *ind_aux;
@@ -138,12 +233,62 @@ void load_ind_to_array(Array_add *a, FILE *binario)
     {
         fseek(binario, 0, i * size_elemento);
         fread(&ind_aux, size_elemento, 1, binario);
-        insertArray(a, *ind_aux);
+        insertArray_add(a, *ind_aux);
+    }
+}
+
+void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
+{
+    int i, size, size_elemento, num_inds;
+    indexdeletedbook *ind_aux;
+    if (a == NULL || binario == NULL || strat == NO_STRAT)
+    {
+        return;
+    }
+
+    ind_aux = (indexdeletedbook *)malloc(sizeof(indexdeletedbook));
+    if (ind_aux == NULL)
+    {
+        return;
+    }
+
+    fseek(binario, 0, SEEK_END);
+    size = ftell(binario);
+    size_elemento = sizeof(size_t) + sizeof(size_t);
+    num_inds = size / size_elemento;
+
+    if (strat == FIRSTFIT)
+    {
+        for (i = 0; i < num_inds; i++)
+        {
+            fseek(binario, 0, i * size_elemento);
+            fread(&ind_aux, size_elemento, 1, binario);
+            insertArray_del_ff(a, *ind_aux);
+        }
+    }
+    else if (strat == BESTFIT)
+    {
+        for (i = 0; i < num_inds; i++)
+        {
+            fseek(binario, 0, i * size_elemento);
+            fread(&ind_aux, size_elemento, 1, binario);
+            insertArray_del_bf(a, *ind_aux);
+        }
+    }
+    else if (strat == WORSTFIT)
+    {
+        for (i = 0; i < num_inds; i++)
+        {
+            fseek(binario, 0, i * size_elemento);
+            fread(&ind_aux, size_elemento, 1, binario);
+            insertArray_del_wf(a, *ind_aux);
+        }
     }
 }
 
 int main(int argc, char *argv[])
 {
+    int strat = NO_STRAT;
     char *raiz = NULL;
     char aux[LIB_SIZE];
     char datos[256], indice[256], lista[256];
@@ -163,19 +308,35 @@ int main(int argc, char *argv[])
     int aux_id;
     int posicion;
     indexbook aux_ind;
+    indexdeletedbook aux_deleted;
+    Array_del array_del;
 
     if (argc != 3)
     {
-        printf("Missing argument");
+        printf("Missing argument\n");
         printf("Uso: %s <estrategia> <nombre_raiz>\n", argv[0]);
         printf("Estrategias posibles: best fit, first fit, worst fit\n");
         return 0;
     }
 
     char *estrategia = argv[1];
-    if (strcmp(estrategia, "best_fit") != 0 && strcmp(estrategia, "first_fit") != 0 && strcmp(estrategia, "worst_fit") != 0)
+    /*Vemos qque tipo de estrategia se utiliza*/
+    if (!strcmp(estrategia, "best_fit"))
     {
-        printf("Unknown search strategy unknown_search_strategy");
+        strat = BESTFIT;
+    }
+    else if (!strcmp(estrategia, "first_fit"))
+    {
+        strat = FIRSTFIT;
+    }
+    else if (!strcmp(estrategia, "worst_fit"))
+    {
+        strat = WORSTFIT;
+    }
+
+    else if (strat == NO_STRAT)
+    {
+        printf("Unknown search strategy unknown_search_strategy\n");
         printf("Estrategia no valida. Debe ser: best fit, first fit o worst fit\n");
         return 0;
     }
@@ -196,31 +357,41 @@ int main(int argc, char *argv[])
     db = fopen(datos, "wb");
     if (!db)
     {
-        perror("Error al crear el fichero de datos");
+        perror("Error al crear el fichero de datos\n");
         return 0;
     }
     ind = fopen(indice, "wb");
     if (!ind)
     {
-        perror("Error al crear el fichero de datos");
+        perror("Error al crear el fichero de datos\n");
         return 0;
     }
     lst = fopen(lista, "wb");
     if (!lst)
     {
-        perror("Error al crear el fichero de datos");
+        perror("Error al crear el fichero de datos\n");
         return 0;
     }
 
     /*inicializo array para indices*/
-    initArray(&indices, 2);
+    initArray_add(&indices, 2);
     if (indices.array == NULL)
     {
-        perror("Error al crear el array de índices");
+        perror("Error al crear el array de índices\n");
         return 0;
     }
 
-    load_ind_to_array(&indices, ind);
+    load_ind_to_array_add(&indices, lst);
+
+    /* iniciallizo array para borrados*/
+    initArray_del(&array_del, 2);
+    if (array_del.array == NULL)
+    {
+        perror("Error al crear el array de borrados\n");
+        return 0;
+    }
+
+    load_ind_to_array_del(&array_del, lst, strat);
 
     while (1)
     {
@@ -262,7 +433,7 @@ int main(int argc, char *argv[])
             token = strtok(NULL, "|");
             if (!(book_aux.title = malloc(strlen(token) + 2)))
             {
-                fprintf(stderr, "Error reservando memoria para title");
+                fprintf(stderr, "Error reservando memoria para title\n");
                 return -1;
             }
             sprintf(book_aux.title, "%s|", token);
@@ -271,7 +442,7 @@ int main(int argc, char *argv[])
             token = strtok(NULL, "|");
             if (!(book_aux.printedBy = malloc(strlen(token) + 1)))
             {
-                fprintf(stderr, "Error reservando memoria para title");
+                fprintf(stderr, "Error reservando memoria para title\n");
                 return -1;
             }
             sprintf(book_aux.printedBy, "%s", token);
@@ -297,7 +468,7 @@ int main(int argc, char *argv[])
             idx.offset = offset;
             idx.size = size;
 
-            insertArray(&indices, idx);
+            insertArray_add(&indices, idx);
 
             printf("Record with BookID=%d has been added to the database\n", book_aux.bookID);
 
@@ -312,7 +483,47 @@ int main(int argc, char *argv[])
         {
             args = aux + 4;
 
-            token = strtok(args, "|");
+            token = strtok(args, "\n");
+            if (!token)
+                continue;
+            aux_id = atoi(token);
+
+            /*comprobamos que existe el dato en array de indices para asi porder borrarlo*/
+            posicion = bin_search(&indices, aux_id);
+            if (posicion == -1)
+            {
+                printf("Item with key %i does not exist\n", aux_id);
+            }
+
+            /*eleminamos el elemento de array de indices*/
+            aux_ind = indices.array[posicion];
+            deleteArray_add(&indices, posicion);
+
+            /*Conseguimos los datos del elemento indexdeletedbook que queremos anadir al array de borrados */
+            aux_deleted.offset = aux_ind.offset;
+            aux_deleted.register_size = aux_ind.size;
+            if (strat == FIRSTFIT)
+            {
+                insertArray_del_ff(&array_del, aux_deleted);
+            }
+            else if (strat == BESTFIT)
+            {
+                insertArray_del_bf(&array_del, aux_deleted);
+            }
+            else
+            {
+                insertArray_del_wf(&array_del, aux_deleted);
+            }
+            printf("Record with BookID=%i has been deleted\n", aux_ind.key);
+            continue;
+        }
+
+        /*comando find buscar elemento en el archivo de datos binario y sacar todos sus elementos*/
+        if (strncmp(aux, "find ", 5) == 0)
+        {
+            args = aux + 5;
+
+            token = strtok(args, "\n");
             if (!token)
                 continue;
             aux_id = atoi(token);
@@ -320,25 +531,23 @@ int main(int argc, char *argv[])
             posicion = bin_search(&indices, aux_id);
             if (posicion == -1)
             {
-                printf("Item with key %i does not exist", aux_id);
+                printf("Record with bookId=%i does not exist\n", aux_id);
             }
-            
             aux_ind = indices.array[posicion];
-            deleteArray(&indices, posicion);
-            
-            /*comando find buscar elemento en el archivo de datos binario y sacar todos sus elementos*/
             /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
             fseek(db, 0, aux_ind.offset + (int)sizeof(size_t));
-            fread(book_aux.bookID, (int)sizeof(int), 1, db);
+            fread(&book_aux.bookID, (int)sizeof(int), 1, db);
             fread(book_aux.isbn, ISBNSIZE, 1, db);
+            /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
             fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
-            buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = "\n";
+            buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = '\0';
             token = strtok(buffer, "|");
             strcpy(book_aux.title, token);
-            token = strtok(NULL, "\n");
+            token = strtok(NULL, "\0");
             strcpy(book_aux.printedBy, token);
 
-            fprintf ("%i|%s|%s|%s", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
+            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
+            continue;
         }
 
         /* comando printInd */
@@ -355,6 +564,40 @@ int main(int argc, char *argv[])
             continue;
         }
 
+        /* comando printLst */
+        if (strcmp(aux, "printLst") == 0)
+        {
+            for (i = 0; i < (int)array_del.used; i++)
+            {
+                printf("Entry #%d\n", i);
+                printf("    offset: #%ld\n", array_del.array[i].offset);
+                printf("    size: #%ld\n", array_del.array[i].register_size);
+            }
+            continue;
+        }
+
+        /* comando printRec*/
+        if (strcmp(aux, "printRec") == 0)
+        {
+            for (i = 0; i < (int)indices.used; i++)
+            {
+                aux_ind = indices.array[i];
+                /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
+                fseek(db, 0, aux_ind.offset + (int)sizeof(size_t));
+                fread(&book_aux.bookID, (int)sizeof(int), 1, db);
+                fread(book_aux.isbn, ISBNSIZE, 1, db);
+                /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
+                fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
+                buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = '\0';
+                token = strtok(buffer, "|");
+                strcpy(book_aux.title, token);
+                token = strtok(NULL, "\0");
+                strcpy(book_aux.printedBy, token);
+
+                printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
+            }
+            continue;
+        }
         printf("Unknown command.\n");
     }
 
@@ -365,10 +608,18 @@ int main(int argc, char *argv[])
         fwrite(&indices.array[i].size, sizeof(size_t), 1, ind);
     }
 
+    fwrite(&strat, sizeof(int), 1, lst);
+    for (i = 0; i < (int)array_del.used; i++)
+    {
+        fwrite(&array_del.array[i].offset, sizeof(size_t), 1, lst);
+        fwrite(&array_del.array[i].register_size, sizeof(size_t), 1, lst);
+    }
+
     fclose(db);
     fclose(ind);
     fclose(lst);
-    freeArray(&indices);
+    freeArray_add(&indices);
+    freeArray_del(&array_del);
 
     return 0;
 }
