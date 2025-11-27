@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define ISBNSIZE 16
+#define SIZE_MIN sizeof(size_t) + sizeof(int) + ISBNSIZE + 2 * sizeof(char)
 #define LIB_SIZE 80 /* Tamano maximo que va a ocupar un libro en la memoria*/
 #define BESTFIT 0
 #define WORSTFIT 1
@@ -90,7 +91,6 @@ void freeArray_add(Array_add *a)
     a->used = a->size = 0;
 }
 
-/*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
 void deleteArray_add(Array_add *a, int pos)
 {
     if (pos < 0 || pos >= (int)a->used)
@@ -104,6 +104,155 @@ void deleteArray_add(Array_add *a, int pos)
     a->used--;
 }
 
+void load_ind_to_array_add(Array_add *a, FILE *binario)
+{
+    int i, size, size_elemento, num_inds;
+    indexbook *ind_aux;
+    if (a == NULL || binario == NULL)
+    {
+        return;
+    }
+
+    ind_aux = (indexbook *)malloc(sizeof(indexbook));
+    if (ind_aux == NULL)
+    {
+        return;
+    }
+
+    fseek(binario, 0, SEEK_END);
+    size = ftell(binario);
+    size_elemento = sizeof(int) + sizeof(long int) + sizeof(size_t);
+    num_inds = size / size_elemento;
+
+    for (i = 0; i < num_inds; i++)
+    {
+        fseek(binario, 0, i * size_elemento);
+        fread(&ind_aux, size_elemento, 1, binario);
+        insertArray_add(a, *ind_aux);
+    }
+}
+
+size_t add_best_fit(int size, Array_del *array_del, FILE *db)
+{
+    size_t offset = 0, size_aux = 0;
+    int i = 0, j = 0, k = 0;
+    indexdeletedbook *index_del_aux, *index_del_aux2;
+
+    if (size <= 0 || !array_del || !array_del->array)
+    {
+        return -1;
+    }
+
+    if (array_del->used <= 0)
+    {
+        fseek(db, 0, SEEK_END);     /* Muevo puntero al final del archivo*/
+        offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
+    }
+
+    while ((array_del->array[i].register_size < (size_t)size) && i < array_del->used)
+    {
+        i++;
+    }
+    if (i >= array_del->used)
+    {
+        fseek(db, 0, SEEK_END);     /* Muevo puntero al final del archivo*/
+        offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
+    }
+    else
+    {
+        offset = array_del->array[i].offset;
+        size_aux = array_del->array[i].register_size - size;
+
+        if ((size_aux) > SIZE_MIN)
+        {
+            index_del_aux = &array_del->array[i];
+            index_del_aux->offset = offset + size;
+            index_del_aux->register_size = size_aux;
+
+            for (j = 0; j < i; j++)
+            {
+                if (array_del->array[j].register_size <= size)
+                {
+                    continue;
+                }
+                else
+                {
+                    *index_del_aux2 = array_del->array[j];
+                    array_del->array[j] = *index_del_aux;
+                    index_del_aux = index_del_aux2;
+                    break;
+                }
+            }
+            for (k = j; k < i; k++)
+            {
+                *index_del_aux2 = array_del->array[k + 1];
+                array_del->array[k + 1] = *index_del_aux;
+                index_del_aux = index_del_aux2;
+            }
+        }
+    }
+    return offset;
+}
+
+size_t add_worst_fit(int size, Array_del *array_del, FILE *db)
+{
+    size_t aux_offset = 0, size_aux;
+    int i = 0, j = 0;
+    indexdeletedbook *nuevo_index_del;
+    if (size <= 0 || !array_del || !array_del->array)
+    {
+        return -1;
+    }
+
+    if (array_del->used <= 0)
+    {
+        fseek(db, 0, SEEK_END);         /* Muevo puntero al final del archivo*/
+        aux_offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
+    }
+
+    /*cogemos el offset del primero en la lista de borrados*/
+    if (array_del->array[0].register_size >= size)
+    {
+        aux_offset = array_del->array[0].offset;
+        size_aux = array_del->array[0].register_size - size;
+
+        if (size_aux > SIZE_MIN)
+        {
+            nuevo_index_del = &array_del->array[0];
+            nuevo_index_del->offset = aux_offset + size;
+            nuevo_index_del->register_size = size_aux;
+
+            for(i = 1; i< array_del->used; i++){
+                if(array_del->array[i].register_size >= nuevo_index_del->register_size){
+                    array_del->array[i-1] = array_del->array[i];
+                }
+                else{
+                    array_del->array[i-1] = *nuevo_index_del;
+                    break;
+                }
+            }
+            if ( i == array_del->used){
+                array_del->array[array_del->used-1] = *nuevo_index_del;
+            }
+        }
+    }
+    /*nos vamos al final de la lista de borrados*/
+    else
+    {
+        fseek(db, 0, SEEK_END);         /* Muevo puntero al final del archivo*/
+        aux_offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
+    }
+    return aux_offset;
+}
+
+
+
+
+
+
+
+
+/*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
 void initArray_del(Array_del *a, size_t initialSize)
 {
     /* create initial empty array of size initialSize */
@@ -207,34 +356,6 @@ int bin_search(Array_add *a, int key)
             high = mid - 1;
     }
     return -1;
-}
-
-void load_ind_to_array_add(Array_add *a, FILE *binario)
-{
-    int i, size, size_elemento, num_inds;
-    indexbook *ind_aux;
-    if (a == NULL || binario == NULL)
-    {
-        return;
-    }
-
-    ind_aux = (indexbook *)malloc(sizeof(indexbook));
-    if (ind_aux == NULL)
-    {
-        return;
-    }
-
-    fseek(binario, 0, SEEK_END);
-    size = ftell(binario);
-    size_elemento = sizeof(int) + sizeof(long int) + sizeof(size_t);
-    num_inds = size / size_elemento;
-
-    for (i = 0; i < num_inds; i++)
-    {
-        fseek(binario, 0, i * size_elemento);
-        fread(&ind_aux, size_elemento, 1, binario);
-        insertArray_add(a, *ind_aux);
-    }
 }
 
 void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
@@ -452,9 +573,13 @@ int main(int argc, char *argv[])
             l2 = strlen(book_aux.printedBy);
             size = sizeof(int) + sizeof(char) * ISBNSIZE + sizeof(char) * l1 + sizeof(char) * l2;
 
-            /* calcular offset actual del fichero */
-            fseek(db, 0, SEEK_END); /* Muevo puntero al final del archivo*/
-            offset = ftell(db);     /*Saco la posición donde estoy*/
+            /* escribir entrada la lista de indices */
+
+            if ()
+
+                /* calcular offset actual del fichero */
+                fseek(db, 0, SEEK_END); /* Muevo puntero al final del archivo*/
+            offset = ftell(db);         /*Saco la posición donde estoy*/
 
             /* escribir registro en .db */
             fwrite(&size, sizeof(size_t), 1, db);              /*Primero lo que ocupa*/
@@ -463,7 +588,6 @@ int main(int argc, char *argv[])
             fwrite(book_aux.title, sizeof(char), l1, db);      /*El titulo*/
             fwrite(book_aux.printedBy, sizeof(char), l2, db);  /*El autor*/
 
-            /* escribir entrada la lista de indices */
             idx.key = book_aux.bookID;
             idx.offset = offset;
             idx.size = size;
