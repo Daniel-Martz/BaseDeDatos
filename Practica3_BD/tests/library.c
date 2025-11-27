@@ -104,6 +104,19 @@ void deleteArray_add(Array_add *a, int pos)
     a->used--;
 }
 
+void deleteArray_del(Array_del *a, int pos)
+{
+    if (pos < 0 || pos >= (int)a->used)
+        return;
+
+    /* desplazamos todos los elementos hacia la izquierda */
+    memmove(&a->array[pos],
+            &a->array[pos + 1],
+            (a->used - pos - 1) * sizeof(indexdeletedbook));
+
+    a->used--;
+}
+
 void load_ind_to_array_add(Array_add *a, FILE *binario)
 {
     int i, size, size_elemento, num_inds;
@@ -136,9 +149,9 @@ size_t add_best_fit(int size, Array_del *array_del, FILE *db)
 {
     size_t offset = 0, size_aux = 0;
     int i = 0, j = 0, k = 0;
-    indexdeletedbook *index_del_aux, *index_del_aux2;
+    indexdeletedbook index_del_aux, index_del_aux2;
 
-    if (size <= 0 || !array_del || !array_del->array)
+    if (size <= 0 || !array_del || !array_del->array || !db)
     {
         return -1;
     }
@@ -149,7 +162,7 @@ size_t add_best_fit(int size, Array_del *array_del, FILE *db)
         offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
     }
 
-    while ((array_del->array[i].register_size < (size_t)size) && i < array_del->used)
+    while (i < array_del->used && (array_del->array[i].register_size < (size_t)size))
     {
         i++;
     }
@@ -165,9 +178,9 @@ size_t add_best_fit(int size, Array_del *array_del, FILE *db)
 
         if ((size_aux) > SIZE_MIN)
         {
-            index_del_aux = &array_del->array[i];
-            index_del_aux->offset = offset + size;
-            index_del_aux->register_size = size_aux;
+            index_del_aux = array_del->array[i];
+            index_del_aux.offset = offset + size;
+            index_del_aux.register_size = size_aux;
 
             for (j = 0; j < i; j++)
             {
@@ -177,18 +190,22 @@ size_t add_best_fit(int size, Array_del *array_del, FILE *db)
                 }
                 else
                 {
-                    *index_del_aux2 = array_del->array[j];
-                    array_del->array[j] = *index_del_aux;
+                    index_del_aux2 = array_del->array[j];
+                    array_del->array[j] = index_del_aux;
                     index_del_aux = index_del_aux2;
                     break;
                 }
             }
             for (k = j; k < i; k++)
             {
-                *index_del_aux2 = array_del->array[k + 1];
-                array_del->array[k + 1] = *index_del_aux;
+                index_del_aux2 = array_del->array[k + 1];
+                array_del->array[k + 1] = index_del_aux;
                 index_del_aux = index_del_aux2;
             }
+        }
+        else
+        {
+            deleteArray_del(array_del, i);
         }
     }
     return offset;
