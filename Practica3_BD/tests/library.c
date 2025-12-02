@@ -400,14 +400,14 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
     fseek(binario, 0, SEEK_END);
     size = ftell(binario);
 
-    if (size < sizeof(int))
+    if (size == SEEK_SET)
         return;
 
     size_elemento = sizeof(size_t) + sizeof(size_t);
-    num_inds = (size - sizeof(int)) / size_elemento;
+    num_inds = size / size_elemento;
 
     /* Nos saltamos el primer entero que es la estrategia */
-    fseek(binario, sizeof(int), SEEK_SET);
+    fseek(binario, 0, SEEK_SET);
 
     for (i = 0; i < num_inds; i++)
     {
@@ -711,7 +711,7 @@ int main(int argc, char *argv[])
             token = strtok(NULL, "\0");
             strcpy(book_aux.printedBy, token);
 
-            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
+            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.title, book_aux.printedBy);
             continue;
         }
 
@@ -759,7 +759,7 @@ int main(int argc, char *argv[])
                 token = strtok(NULL, "\0");
                 strcpy(book_aux.printedBy, token);
 
-                printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.printedBy, book_aux.title);
+                printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.title, book_aux.printedBy);
             }
             continue;
         }
