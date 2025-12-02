@@ -4,7 +4,7 @@
 
 #define ISBNSIZE 16
 #define SIZE_MIN sizeof(size_t) + sizeof(int) + ((ISBNSIZE + 2) * sizeof(char)) /* Preguntar a la profesora en la otra clase les han dicho que solo es sizeof(size_t)*/
-#define LIB_SIZE 80 /* Tamano maximo que va a ocupar un libro en la memoria*/
+#define LIB_SIZE 80                                                             /* Tamano maximo que va a ocupar un libro en la memoria*/
 #define BESTFIT 0
 #define WORSTFIT 1
 #define FIRSTFIT 2
@@ -116,7 +116,6 @@ void deleteArray_del(Array_del *a, int pos)
 
     a->used--;
 }
-
 
 /*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
 void initArray_del(Array_del *a, size_t initialSize)
@@ -337,7 +336,7 @@ size_t add_first_fit(int size, Array_del *array_del, FILE *db)
     }
     if (i >= (int)array_del->used)
     {
-        fseek(db, 0, SEEK_END);     /* Muevo puntero al final del archivo*/
+        fseek(db, 0, SEEK_END);         /* Muevo puntero al final del archivo*/
         aux_offset = (size_t)ftell(db); /*Saco la posición donde estoy*/
     }
     else
@@ -364,14 +363,9 @@ size_t add_first_fit(int size, Array_del *array_del, FILE *db)
 void load_ind_to_array_add(Array_add *a, FILE *binario)
 {
     int i, size, size_elemento, num_inds;
-    indexbook *ind_aux;
-    if (a == NULL || binario == NULL)
-    {
-        return;
-    }
+    indexbook ind_aux;
 
-    ind_aux = (indexbook *)malloc(sizeof(indexbook));
-    if (ind_aux == NULL)
+    if (a == NULL || binario == NULL)
     {
         return;
     }
@@ -381,59 +375,56 @@ void load_ind_to_array_add(Array_add *a, FILE *binario)
     size_elemento = sizeof(int) + sizeof(long int) + sizeof(size_t);
     num_inds = size / size_elemento;
 
+    fseek(binario, 0, SEEK_SET);
+
     for (i = 0; i < num_inds; i++)
     {
-        fseek(binario, i * size_elemento, SEEK_SET);
-        fread(&ind_aux, size_elemento, 1, binario);
-        insertArray_add(a, *ind_aux);
+        fread(&ind_aux.key, sizeof(int), 1, binario);
+        fread(&ind_aux.offset, sizeof(long int), 1, binario);
+        fread(&ind_aux.size, sizeof(size_t), 1, binario);
+
+        insertArray_add(a, ind_aux);
     }
 }
 
 void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
 {
     int i, size, size_elemento, num_inds;
-    indexdeletedbook *ind_aux;
-    if (a == NULL || binario == NULL || strat == NO_STRAT)
-    {
-        return;
-    }
+    indexdeletedbook ind_aux;
 
-    ind_aux = (indexdeletedbook *)malloc(sizeof(indexdeletedbook));
-    if (ind_aux == NULL)
+    if (a == NULL || binario == NULL || strat == NO_STRAT)
     {
         return;
     }
 
     fseek(binario, 0, SEEK_END);
     size = ftell(binario);
-    size_elemento = sizeof(size_t) + sizeof(size_t);
-    num_inds = size / size_elemento;
 
-    if (strat == FIRSTFIT)
+    if (size < sizeof(int))
+        return;
+
+    size_elemento = sizeof(size_t) + sizeof(size_t);
+    num_inds = (size - sizeof(int)) / size_elemento;
+
+    /* Nos saltamos el primer entero que es la estrategia */
+    fseek(binario, sizeof(int), SEEK_SET);
+
+    for (i = 0; i < num_inds; i++)
     {
-        for (i = 0; i < num_inds; i++)
+        fread(&ind_aux.offset, sizeof(size_t), 1, binario);
+        fread(&ind_aux.register_size, sizeof(size_t), 1, binario);
+
+        if (strat == FIRSTFIT)
         {
-            fseek(binario, i * size_elemento, SEEK_SET);
-            fread(&ind_aux, size_elemento, 1, binario);
-            insertArray_del_ff(a, *ind_aux);
+            insertArray_del_ff(a, ind_aux);
         }
-    }
-    else if (strat == BESTFIT)
-    {
-        for (i = 0; i < num_inds; i++)
+        else if (strat == BESTFIT)
         {
-            fseek(binario, i * size_elemento, SEEK_SET);
-            fread(&ind_aux, size_elemento, 1, binario);
-            insertArray_del_bf(a, *ind_aux);
+            insertArray_del_bf(a, ind_aux);
         }
-    }
-    else if (strat == WORSTFIT)
-    {
-        for (i = 0; i < num_inds; i++)
+        else if (strat == WORSTFIT)
         {
-            fseek(binario, i * size_elemento, SEEK_SET);
-            fread(&ind_aux, size_elemento, 1, binario);
-            insertArray_del_wf(a, *ind_aux);
+            insertArray_del_wf(a, ind_aux);
         }
     }
 }
@@ -512,11 +503,16 @@ int main(int argc, char *argv[])
         perror("Error al crear el fichero de datos\n");
         return 0;
     }
-    ind = fopen(indice, "wb");
-    if (!ind)
+
+    ind = fopen(indice, "r+b");
+    if (ind == NULL)
     {
-        perror("Error al crear el fichero de datos\n");
-        return 0;
+        ind = fopen(indice, "w+b");
+        if (!ind)
+        {
+            perror("Error al crear el fichero de índices\n");
+            return 0;
+        }
     }
     lst = fopen(lista, "wb");
     if (!lst)
@@ -533,7 +529,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    load_ind_to_array_add(&indices, lst);
+    load_ind_to_array_add(&indices, ind);
 
     /* iniciallizo array para borrados*/
     initArray_del(&array_del, 2);
@@ -561,7 +557,7 @@ int main(int argc, char *argv[])
         if (strcmp(aux, "exit") == 0)
         {
             printf("exit\n");
-            printf("all done\n");
+            /*printf("all done\n");*/
             break;
         }
 
@@ -607,18 +603,22 @@ int main(int argc, char *argv[])
 
             /* escribir entrada la lista de indices */
 
-            if (strat == FIRSTFIT){
+            if (strat == FIRSTFIT)
+            {
                 offset = add_first_fit(size, &array_del, db);
             }
-            else if(strat == BESTFIT){
+            else if (strat == BESTFIT)
+            {
                 offset = add_best_fit(size, &array_del, db);
             }
-            else{
+            else
+            {
                 offset = add_worst_fit(size, &array_del, db);
             }
 
-            if(offset == -1){
-                fprintf(stderr,"Error añadiendo un nuevo dato\n");
+            if (offset == -1)
+            {
+                fprintf(stderr, "Error añadiendo un nuevo dato\n");
                 return -1;
             }
             fseek(db, offset, SEEK_SET);
