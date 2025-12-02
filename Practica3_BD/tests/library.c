@@ -557,7 +557,6 @@ int main(int argc, char *argv[])
         if (strcmp(aux, "exit") == 0)
         {
             printf("exit\n");
-            /*printf("all done\n");*/
             break;
         }
 
@@ -767,6 +766,7 @@ int main(int argc, char *argv[])
         printf("Unknown command.\n");
     }
 
+    fseek(ind, 0, SEEK_SET);
     for (i = 0; i < (int)indices.used; i++)
     {
         fwrite(&indices.array[i].key, sizeof(int), 1, ind);
@@ -774,6 +774,7 @@ int main(int argc, char *argv[])
         fwrite(&indices.array[i].size, sizeof(size_t), 1, ind);
     }
 
+    fseek(lst, 0, SEEK_SET);
     fwrite(&strat, sizeof(int), 1, lst);
     for (i = 0; i < (int)array_del.used; i++)
     {
@@ -787,5 +788,6 @@ int main(int argc, char *argv[])
     freeArray_add(&indices);
     freeArray_del(&array_del);
 
+    printf("all done\n");
     return 0;
 }
