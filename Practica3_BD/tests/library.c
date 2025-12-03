@@ -428,11 +428,11 @@ int main(int argc, char *argv[])
 {
     int strat = NO_STRAT;
     char *raiz = NULL;
-    char aux[LIB_SIZE];
+    char aux[LIB_SIZE], title[100], printedBy[100];
     char datos[256], indice[256], lista[256];
     char *args = NULL;
     char *token = NULL;
-    char buffer[256];
+    char buffer[500];
     long int offset;
     FILE *db = NULL;
     FILE *ind = NULL;
@@ -695,24 +695,57 @@ int main(int argc, char *argv[])
             aux_id = atoi(token);
 
             posicion = bin_search(&indices, aux_id);
+            printf("%iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n", posicion);
             if (posicion == -1)
             {
                 printf("Record with bookId=%i does not exist\n", aux_id);
+                continue;
             }
             aux_ind = indices.array[posicion];
-            /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
-            fseek(db, aux_ind.offset + (int)sizeof(size_t), SEEK_SET);
-            fread(&book_aux.bookID, (int)sizeof(int), 1, db);
-            fread(book_aux.isbn, ISBNSIZE, 1, db);
-            /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
-            fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
-            buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = '\0';
-            token = strtok(buffer, "|");
-            strcpy(book_aux.title, token);
-            token = strtok(NULL, "\0");
-            strcpy(book_aux.printedBy, token);
 
-            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.title, book_aux.printedBy);
+            /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
+            fseek(db, aux_ind.offset + (long)sizeof(size_t), SEEK_SET);
+            fread(&book_aux.bookID, (size_t)sizeof(int), 1, db);
+            printf("%i\n", book_aux.bookID);
+            fread(book_aux.isbn, ISBNSIZE, 1, db);
+            printf("%s\n", book_aux.isbn);
+            /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
+            fread(buffer, 1, aux_ind.size - sizeof(int) - ISBNSIZE, db);
+            buffer[aux_ind.size - sizeof(int) - ISBNSIZE] = '\0';
+
+            printf("%s\n", buffer);
+            token = strtok(buffer, "|");     
+            if (token)
+                strncpy(title, token, sizeof(title)-1);
+            title[sizeof(title)-1] = '\0';
+
+            token = strtok(NULL, "\n");    
+            if (token)
+                strncpy(printedBy, token, sizeof(printedBy)-1);
+            printedBy[sizeof(printedBy)-1] = '\0';
+
+            /*token = strtok(buffer, "|");
+            if (token == NULL)
+            {
+                strcpy(title, "Unknown");
+            }
+            else
+            {
+                strcpy(title, token);
+            }
+            printf("%s\n", title);
+            token = strtok(NULL, "\0");
+            if (token == NULL)
+            {
+                strcpy(title, "Unknowc");
+            }
+            else
+            {
+                strcpy(printedBy, token);
+            }*/
+            printf("%s\n", printedBy);
+            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, title, printedBy);
+
             continue;
         }
 

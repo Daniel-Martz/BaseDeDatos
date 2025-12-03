@@ -24,6 +24,10 @@ library: library.o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+first_fit:
+	@echo Running first_fit
+	@valgrind --leak-check=full -s ./library first_fit test
+
 #Para que no haya problemas cunado un test necesite ejecutar otro
 permissions:
 	chmod +x *.sh
