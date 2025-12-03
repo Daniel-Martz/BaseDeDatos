@@ -429,7 +429,7 @@ int main(int argc, char *argv[])
     int strat = NO_STRAT;
     char *raiz = NULL;
     char aux[LIB_SIZE];
-    char datos[256], indice[256], lista[256];
+    char datos[256], indice[256], lista[256], title[256], printedBy[256];
     char *args = NULL;
     char *token = NULL;
     char buffer[256];
@@ -492,13 +492,17 @@ int main(int argc, char *argv[])
     printf("Indice: %s\n", indice);
     printf("Listado: %s\n", lista);
 
-    db = fopen(datos, "wb");
-    if (!db)
+    db = fopen(datos, "r+b");
+    if (db == NULL)
     {
-        perror("Error al crear el fichero de datos\n");
-        return 0;
+        /* Si falla es porque no existe, lo creamos con w+b (Leer/Escribir) */
+        db = fopen(datos, "w+b");
+        if (!db)
+        {
+            perror("Error al crear el fichero de datos\n");
+            return 0;
+        }
     }
-
     ind = fopen(indice, "r+b");
     if (ind == NULL)
     {
@@ -509,11 +513,16 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-    lst = fopen(lista, "wb");
+
+    lst = fopen(lista, "r+b");
     if (!lst)
     {
-        perror("Error al crear el fichero de datos\n");
-        return 0;
+        lst = fopen(lista, "w+b");
+        if (lst == NULL)
+        {
+            perror("Error al crear el fichero de datos\n");
+            return 0;
+        }
     }
 
     /*inicializo array para indices*/
@@ -686,7 +695,7 @@ int main(int argc, char *argv[])
 
         /*comando find buscar elemento en el archivo de datos binario y sacar todos sus elementos*/
         if (strncmp(aux, "find ", 5) == 0)
-        {
+        {   
             args = aux + 5;
 
             token = strtok(args, "\n");
@@ -698,21 +707,26 @@ int main(int argc, char *argv[])
             if (posicion == -1)
             {
                 printf("Record with bookId=%i does not exist\n", aux_id);
+                continue;
             }
             aux_ind = indices.array[posicion];
             /*castameos a lo que queremos que se convierta el tipo de dato : ej 3A 30 00 00 lo casteamos en int y sacamos el entero 12345*/
             fseek(db, aux_ind.offset + (int)sizeof(size_t), SEEK_SET);
             fread(&book_aux.bookID, (int)sizeof(int), 1, db);
             fread(book_aux.isbn, ISBNSIZE, 1, db);
+            book_aux.isbn[ISBNSIZE] = '\0';
             /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
             fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
             buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = '\0';
             token = strtok(buffer, "|");
-            strcpy(book_aux.title, token);
-            token = strtok(NULL, "\0");
-            strcpy(book_aux.printedBy, token);
+            strcpy(title, token);
+            title[sizeof(title)-1] = '\0';
 
-            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.title, book_aux.printedBy);
+            token = strtok(NULL, "\0");
+            strcpy(printedBy, token);
+            printedBy[sizeof(printedBy)-1] = '\0';
+
+            printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, title, printedBy);
             continue;
         }
 
@@ -752,15 +766,18 @@ int main(int argc, char *argv[])
                 fseek(db, aux_ind.offset + (int)sizeof(size_t), SEEK_SET);
                 fread(&book_aux.bookID, (int)sizeof(int), 1, db);
                 fread(book_aux.isbn, ISBNSIZE, 1, db);
+                book_aux.isbn[ISBNSIZE] = '\0';
                 /*como es tamano variable cogemos el resto del registro y luego separamos gracias a '|' */
                 fread(buffer, aux_ind.size - (int)sizeof(int) - ISBNSIZE, 1, db);
                 buffer[aux_ind.size - (int)sizeof(int) - ISBNSIZE] = '\0';
                 token = strtok(buffer, "|");
-                strcpy(book_aux.title, token);
+                strcpy(title, token);
+                title[sizeof(title)-1] = '\0';
                 token = strtok(NULL, "\0");
-                strcpy(book_aux.printedBy, token);
+                strcpy(printedBy, token);
+                printedBy[sizeof(printedBy)-1] = '\0';
 
-                printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, book_aux.title, book_aux.printedBy);
+                printf("%i|%s|%s|%s\n", book_aux.bookID, book_aux.isbn, title, printedBy);
             }
             continue;
         }

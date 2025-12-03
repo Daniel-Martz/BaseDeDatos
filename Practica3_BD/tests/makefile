@@ -70,3 +70,6 @@ run_test7: library
 
 run_test8: library
 	expect ./reload_index.sh
+
+run_test9: library
+	expect ./test_use_deleted_books.sh
