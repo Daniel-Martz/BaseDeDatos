@@ -70,11 +70,6 @@ void insertArray_add(Array_add *a, indexbook element)
     while (pos < a->used && a->array[pos].key < element.key)
         pos++;
 
-    if (pos < a->used && a->array[pos].key == element.key)
-    {
-        printf("Record with BookID=%i exists\n", element.key);
-        return;
-    }
     /* Hago hueco con memmove*/
     memmove(&a->array[pos + 1], &a->array[pos], (a->used - pos) * sizeof(indexbook));
 
@@ -571,7 +566,13 @@ int main(int argc, char *argv[])
                 continue;
             book_aux.bookID = atoi(token);
 
-            /*falta ver si ya esta insertado*/
+            posicion = 0;
+
+            if (posicion < (int)indices.used && indices.array[posicion].key == book_aux.bookID)
+            {
+                printf("Record with BookID=%i exists\n", book_aux.bookID);
+                continue;
+            }
 
             /*Ahora el isbn*/
             token = strtok(NULL, "|");
