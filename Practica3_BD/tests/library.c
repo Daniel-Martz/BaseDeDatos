@@ -27,8 +27,8 @@ typedef struct
 
 typedef struct
 {
-    size_t register_size;
     size_t offset;
+    size_t register_size;
 } indexdeletedbook;
 
 /*Estructura y funciones modificadas para guardar en el array indices y no solo enteros*/
@@ -385,7 +385,8 @@ void load_ind_to_array_add(Array_add *a, FILE *binario)
 void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
 {
     int i, size, size_elemento, num_inds;
-    indexdeletedbook ind_aux;
+    int strat_aux;
+    indexdeletedbook *ind_aux = NULL;
 
     if (a == NULL || binario == NULL || strat == NO_STRAT)
     {
@@ -399,29 +400,42 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
         return;
 
     size_elemento = sizeof(size_t) + sizeof(size_t);
-    num_inds = size / size_elemento;
+    num_inds = (size - sizeof(int)) / size_elemento;
+
+    if(!(ind_aux = (indexdeletedbook*)calloc(num_inds, sizeof(indexdeletedbook)))){
+        return;
+    }
 
     /* Nos saltamos el primer entero que es la estrategia */
     fseek(binario, 0, SEEK_SET);
+    fread(&strat_aux, sizeof(int), 1, binario);
+    fread(ind_aux, sizeof(indexdeletedbook), num_inds, binario);
 
-    for (i = 0; i < num_inds; i++)
+    if(strat_aux == strat){
+        free(a->array);
+        a->array = ind_aux;
+        return;
+    }
+
+    if (strat == FIRSTFIT)
     {
-        fread(&ind_aux.offset, sizeof(size_t), 1, binario);
-        fread(&ind_aux.register_size, sizeof(size_t), 1, binario);
-
-        if (strat == FIRSTFIT)
-        {
-            insertArray_del_ff(a, ind_aux);
-        }
-        else if (strat == BESTFIT)
-        {
-            insertArray_del_bf(a, ind_aux);
-        }
-        else if (strat == WORSTFIT)
-        {
-            insertArray_del_wf(a, ind_aux);
+        for (i = 0; i < num_inds; i++){
+            insertArray_del_ff(a, ind_aux[i]);
         }
     }
+    else if (strat == BESTFIT)
+    {
+        for (i = 0; i < num_inds; i++){
+            insertArray_del_bf(a, ind_aux[i]);
+        }
+    }
+    else if (strat == WORSTFIT)
+    {
+        for (i = 0; i < num_inds; i++){
+            insertArray_del_wf(a, ind_aux[i]);
+        }
+    }
+    free(ind_aux);
 }
 
 int main(int argc, char *argv[])
@@ -799,6 +813,7 @@ int main(int argc, char *argv[])
         fwrite(&array_del.array[i].offset, sizeof(size_t), 1, lst);
         fwrite(&array_del.array[i].register_size, sizeof(size_t), 1, lst);
     }
+
 
     fclose(db);
     fclose(ind);

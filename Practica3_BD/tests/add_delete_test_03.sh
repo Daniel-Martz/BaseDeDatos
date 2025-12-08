@@ -10,7 +10,7 @@ set filename "test"
 
 # delete all files starting with test
 # file delete [glob test*]
-spawn rm -f $filename.db $filename.ind
+spawn rm -f $filename.db $filename.ind $filename.lst
 
 # call program
 #spawn valgrind ./$programName best_fit test

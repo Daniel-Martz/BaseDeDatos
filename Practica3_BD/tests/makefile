@@ -28,6 +28,14 @@ first_fit:
 	@echo Running first_fit
 	@valgrind --leak-check=full -s ./library first_fit test
 
+best_fit:
+	@echo Running best_fit
+	@valgrind --leak-check=full -s ./library best_fit test
+
+worst_fit:
+	@echo Running worst_fit_fit
+	@valgrind --leak-check=full -s ./library worst_fit test
+
 #Para que no haya problemas cunado un test necesite ejecutar otro
 permissions:
 	chmod +x *.sh
