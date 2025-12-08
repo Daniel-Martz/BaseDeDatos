@@ -3,8 +3,8 @@
 #include <stdio.h>
 
 #define ISBNSIZE 16
-#define SIZE_MIN sizeof(size_t) + sizeof(int) + ((ISBNSIZE + 2) * sizeof(char)) /* Preguntar a la profesora en la otra clase les han dicho que solo es sizeof(size_t)*/
-#define LIB_SIZE 80                                                             /* Tamano maximo que va a ocupar un libro en la memoria*/
+#define SIZE_MIN sizeof(size_t)  
+#define LIB_SIZE 140  /* Tamano maximo que va a ocupar un libro en la memoria*/
 #define BESTFIT 0
 #define WORSTFIT 1
 #define FIRSTFIT 2
