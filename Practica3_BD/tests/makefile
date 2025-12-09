@@ -82,10 +82,8 @@ run_test8: library
 run_test9: library
 	expect ./test_del_add_ff.sh
 
-<<<<<<< Updated upstream
 run_test10: library
-	expect ./test_del_add_ff.sh
-=======
+	expect ./test_del_add_wf.sh
+
 run_test11: library
 	expect ./test_del_add_bf.sh
->>>>>>> Stashed changes
