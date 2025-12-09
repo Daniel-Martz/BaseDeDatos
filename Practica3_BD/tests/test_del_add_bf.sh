@@ -88,11 +88,11 @@ expect "    size: #36"
 #Veamos los huecos (deben estar ordenados de mayor a menor size)
 send "printLst\n"
 expect "Entry #0"
-expect "    offset: #0"
-expect "    size: #38"
-expect "Entry #1"
 expect "    offset: #90"
 expect "    size: #32"
+expect "Entry #1"
+expect "    offset: #0"
+expect "    size: #38"
 
 # Estos dos libros deben de guardarse a continuación del resto (offset: 174 para adelante)
 send  "add 12347|978-2-12345680-1|La insoportable levedad del ser|Catedra\r"
@@ -124,11 +124,11 @@ expect "    size: #36"
 # Observamos que no se han modificado los huecos
 send  "printLst\n"
 expect "Entry #0"
-expect "    offset: #0"
-expect "    size: #38"
-expect "Entry #1"
 expect "    offset: #90"
 expect "    size: #32"
+expect "Entry #1"
+expect "    offset: #0"
+expect "    size: #38"
 
 # BORRAR EL LIBRO DE EN MEDIO (12345)
 send "del 12345\r"
@@ -137,14 +137,14 @@ expect "Record with BookID=12345 has been deleted"
 # Verificamos que el hueco está en la lista de borrados. Esperamos ver el offset 46 (que era donde estaba el libro 12345)
 send "printLst\n"
 expect "Entry #0"
-expect "    offset: #0"
-expect "    size: #38"
+expect "    offset: #90"
+expect "    size: #32"
 expect "Entry #1"
 expect "    offset: #46"
 expect "    size: #36"
 expect "Entry #2"
-expect "    offset: #90"
-expect "    size: #32"
+expect "    offset: #0"
+expect "    size: #38"
 
 # AÑADIR UN NUEVO LIBRO QUE QUEPA EN EL HUECO
 send  "add 99999|978-2-00000000-0|Edito|Si\r"
@@ -166,22 +166,18 @@ expect "    offset: #130"
 expect "    size: #36"
 expect "Entry #3"
 expect "    key: #99999"
-expect "    offset: #0"
+expect "    offset: #90"
 expect "    size: #28"
 expect "exit"
 
-# Se debe haber eliminado el hueco de offset 0 y se debe haber añadido uno nuevo puesto que el tamaño del dato es 28 y el del hueco era de 38
+# Se debe haber eliminado el hueco de offset 90 y y como quedan 4 bytes no son los 8 necesarios para crear otro 
 send "printLst\n"
 expect "Entry #0"
 expect "    offset: #46"
 expect "    size: #36"
 expect "Entry #1"
-expect "    offset: #90"
-expect "    size: #32"
-expect "Entry #2"
-expect "    offset: #28"
-expect "    size: #10"
-expect "exit"
+expect "    offset: #0"
+expect "    size: #38"
 
 send "exit\n"
 expect "all done"
@@ -198,7 +194,7 @@ if {[file exists [file join $filename.ind]]} {
 ## call diff program for index
 set output "differ"
 try {
-set output [exec diff -s $filename.ind ${filename}_control_ff.ind]
+set output [exec diff -s $filename.ind ${filename}_control_bf.ind]
 } trap CHILDSTATUS {} {}
 if {[regexp -nocase "identical" $output] || [regexp -nocase "idénticos" $output]} {
     puts "3) index files are identical, ;-)"
@@ -209,7 +205,7 @@ if {[regexp -nocase "identical" $output] || [regexp -nocase "idénticos" $output
 ## call diff program for list
 set output "differ"
 try {
-set output [exec diff -s $filename.lst ${filename}_control_ff.lst]
+set output [exec diff -s $filename.lst ${filename}_control_bf.lst]
 } trap CHILDSTATUS {} {}
 if {[regexp -nocase "identical" $output] || [regexp -nocase "idénticos" $output]} {
     puts "3) delete books files are identical, ;-)"
