@@ -7,7 +7,7 @@ set filename "test"
 
 # delete all files starting with test
 # file delete [glob test*]
-spawn rm -f $filename.db $filename.ind $filename.lst
+spawn rm -f $filename.db $filename.ind
 
 # call program
 spawn valgrind --track-origins=yes ./$programName first_fit test
