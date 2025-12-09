@@ -82,5 +82,5 @@ run_test8: library
 run_test9: library
 	expect ./test_del_add_ff.sh
 
-run_test10 library
+run_test10: library
 	expect ./test_del_add_ff.sh
