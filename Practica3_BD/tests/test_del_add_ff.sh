@@ -189,3 +189,31 @@ expect "all done"
 # 1. Comprobación lógica del script (Si llegamos aquí, Expect no falló)
 puts "1) Logic Check: OK ;-)"
 
+if {[file exists [file join $filename.ind]]} {
+    puts "2) file $filename.ind Exists, ;-)"
+} else {
+    puts "2) file $filename.ind NOT found, :-("
+}
+
+## call diff program for index
+set output "differ"
+try {
+set output [exec diff -s $filename.ind ${filename}_control_ff.ind]
+} trap CHILDSTATUS {} {}
+if {[regexp -nocase "identical" $output] || [regexp -nocase "idénticos" $output]} {
+    puts "3) index files are identical, ;-)"
+} else {
+    puts "3) files differ, :-("
+}
+
+## call diff program for list
+set output "differ"
+try {
+set output [exec diff -s $filename.lst ${filename}_control_ff.lst]
+} trap CHILDSTATUS {} {}
+if {[regexp -nocase "identical" $output] || [regexp -nocase "idénticos" $output]} {
+    puts "3) delete books files are identical, ;-)"
+} else {
+    puts "3) files differ, :-("
+}
+puts "4) Script end"

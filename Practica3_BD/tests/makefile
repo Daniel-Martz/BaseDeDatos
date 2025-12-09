@@ -80,4 +80,4 @@ run_test8: library
 	expect ./reload_index.sh
 
 run_test9: library
-	expect ./test_use_deleted_books.sh
+	expect ./test_del_add_ff.sh
