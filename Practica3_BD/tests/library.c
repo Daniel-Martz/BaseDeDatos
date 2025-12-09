@@ -429,12 +429,13 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
             insertArray_del_bf(a, ind_aux[i]);
         }
     }
-    if (strat == WORSTFIT)
+    else if (strat == WORSTFIT)
     {
         for (i = 0; i < num_inds; i++){
             insertArray_del_wf(a, ind_aux[i]);
         }
     }
+    free(ind_aux);
 }
 
 int main(int argc, char *argv[])

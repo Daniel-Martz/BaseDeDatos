@@ -8,7 +8,7 @@ set filename "test"
 set programName "./library"
 
 # delete all files starting with $filename
-spawn rm -f $filename.db $filename.ind
+spawn rm -f $filename.db $filename.ind $filename.lst
 
 # call program
 spawn ./$programName first_fit $filename

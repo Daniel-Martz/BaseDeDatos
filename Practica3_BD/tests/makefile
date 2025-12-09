@@ -34,7 +34,7 @@ best_fit:
 
 worst_fit:
 	@echo Running worst_fit_fit
-	@valgrind./library worst_fit test
+	@valgrind --leak-check=full -s ./library worst_fit test
 
 #Para que no haya problemas cunado un test necesite ejecutar otro
 permissions:
