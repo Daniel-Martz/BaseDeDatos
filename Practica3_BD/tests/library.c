@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
         if (!db)
         {
             perror("Error al crear el fichero de datos\n");
-            return 0;
+            return -1;
         }
     }
     ind = fopen(indice, "r+b");
@@ -641,7 +641,7 @@ int main(int argc, char *argv[])
         if (!ind)
         {
             perror("Error al crear el fichero de índices\n");
-            return 0;
+            return -1;
         }
     }
 
@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
         if (lst == NULL)
         {
             perror("Error al crear el fichero de datos\n");
-            return 0;
+            return -1;
         }
     }
 
@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
     if (indices.array == NULL)
     {
         perror("Error al crear el array de índices\n");
-        return 0;
+        return -1;
     }
 
     load_ind_to_array_add(&indices, ind);
@@ -671,7 +671,7 @@ int main(int argc, char *argv[])
     if (array_del.array == NULL)
     {
         perror("Error al crear el array de borrados\n");
-        return 0;
+        return -1;
     }
 
     load_ind_to_array_del(&array_del, lst, strat);
@@ -708,9 +708,16 @@ int main(int argc, char *argv[])
 
             posicion = 0;
 
-            if (posicion < (int)indices.used && indices.array[posicion].key == book_aux.bookID)
-            {
-                printf("Record with BookID=%i exists\n", book_aux.bookID);
+            while(posicion < (int)indices.used){
+                if (indices.array[posicion].key == book_aux.bookID)
+                {
+                    printf("Record with BookID=%i exists\n", book_aux.bookID);
+                    break;
+                }
+                posicion++;
+            }
+
+            if(posicion != (int)indices.used){
                 continue;
             }
 
@@ -799,6 +806,7 @@ int main(int argc, char *argv[])
             if (posicion == -1)
             {
                 printf("Item with key %i does not exist\n", aux_id);
+                continue;
             }
 
             /*eleminamos el elemento de array de indices*/
