@@ -1,3 +1,14 @@
+/**
+ * @file library.c
+ * @author Daniel Martinez and Rodrigo Díaz-Reagñón
+ * @brief Implementación de toda la base de datos library
+ * @version 0.1
+ * @date 2025-12-10
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,6 +58,12 @@ typedef struct
     size_t size;
 } Array_del;
 
+/**
+ * @brief Esta función inicializa el array de indices
+ * 
+ * @param a Array de indices de la base de datos
+ * @param initialSize Tamaño con el que se quiere inicializar
+ */
 void initArray_add(Array_add *a, size_t initialSize)
 {
     /* create initial empty array of size initialSize */
@@ -55,6 +72,12 @@ void initArray_add(Array_add *a, size_t initialSize)
     a->size = initialSize;
 }
 
+/**
+ * @brief Función que añade un libro al array de indices (mantiene el orden según los bookID)
+ * 
+ * @param a Array de indices de la base de datos
+ * @param element ´ndice a insertar
+ */
 void insertArray_add(Array_add *a, indexbook element)
 {
     /* insert item "element" in array
@@ -78,14 +101,26 @@ void insertArray_add(Array_add *a, indexbook element)
     a->used++;
 }
 
+/**
+ * @brief Función que libera todo el array de indices
+ * 
+ * @param a Array de indices de la base de datos
+ */
 void freeArray_add(Array_add *a)
 {
     /* free memory allocated for array */
     free(a->array);
     a->array = NULL;
-    a->used = a->size = 0;
+    a->used = 0;
+    a->size = 0;
 }
 
+/**
+ * @brief Función que elimina un indice del array de índices
+ * 
+ * @param a Array de índices de la base de datos
+ * @param pos Referencia a la posición del elemento que queremos eliminar del array
+ */
 void deleteArray_add(Array_add *a, int pos)
 {
     if (pos < 0 || pos >= (int)a->used)
@@ -98,7 +133,14 @@ void deleteArray_add(Array_add *a, int pos)
 
     a->used--;
 }
+/*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
 
+/**
+ * @brief Función 
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param pos Referencia a la posición del elemento que queremos eliminar del array
+ */
 void deleteArray_del(Array_del *a, int pos)
 {
     if (pos < 0 || pos >= (int)a->used)
@@ -112,7 +154,13 @@ void deleteArray_del(Array_del *a, int pos)
     a->used--;
 }
 
-/*FUNCIONES PARA MANEJAR EL ARRAY DE BORRADOS*/
+
+/**
+ *@brief Funcion que inicializa el array de huecos
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param initialSize tamaño inicial 
+ */
 void initArray_del(Array_del *a, size_t initialSize)
 {
     /* create initial empty array of size initialSize */
@@ -121,6 +169,11 @@ void initArray_del(Array_del *a, size_t initialSize)
     a->size = initialSize;
 }
 
+/**
+ * @brief Funcion para liberar el array de huecos
+ * 
+ * @param a Array de huecos de la base de datos
+ */
 void freeArray_del(Array_del *a)
 {
     /* free memory allocated for array */
@@ -128,7 +181,12 @@ void freeArray_del(Array_del *a)
     a->array = NULL;
     a->used = a->size = 0;
 }
-
+/**
+ * @brief Funcion para insertar en el array de huecos con la estrategia de first_fit
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param element Elemento que queremos insertar
+ */
 void insertArray_del_ff(Array_del *a, indexdeletedbook element)
 {
     /* insert item "element" in array
@@ -152,6 +210,13 @@ void insertArray_del_ff(Array_del *a, indexdeletedbook element)
     a->used++;
 }
 
+/**
+ * @brief Funcion para insertar en el array de huecos con la estrategia de best_fit
+ * 
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param element Elemento que queremos insertar
+ */
 void insertArray_del_bf(Array_del *a, indexdeletedbook element)
 {
     /* insert item "element" in array
@@ -174,7 +239,12 @@ void insertArray_del_bf(Array_del *a, indexdeletedbook element)
     a->array[pos] = element;
     a->used++;
 }
-
+/**
+ * @brief Funcion para insertar en el array de huecos con la estrategia de worst_fit
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param element Elemento que queremos insertar
+ */
 void insertArray_del_wf(Array_del *a, indexdeletedbook element)
 {
     /* insert item "element" in array
@@ -198,6 +268,13 @@ void insertArray_del_wf(Array_del *a, indexdeletedbook element)
     a->used++;
 }
 
+/**
+ * @brief Algoritmo de busqueda binari
+ * 
+ * @param a Array con todos los elementos
+ * @param key Elemento que queremos buscar
+ * @return Posicion donde se ecne 
+ */
 int bin_search(Array_add *a, int key)
 {
     int low = 0;
@@ -218,6 +295,14 @@ int bin_search(Array_add *a, int key)
     return -1;
 }
 
+/**
+ * @brief Funcion para añadir un elemento con la estrategia de best_fit
+ * 
+ * @param size Tamaño del dato a insertar 
+ * @param array_del Array de los huecos
+ * @param db Fichero de datos
+ * @return Offset del elemento insertado  
+ */
 size_t add_best_fit(int size, Array_del *array_del, FILE *db)
 {
     size_t offset = 0, size_aux = 0;
@@ -265,6 +350,14 @@ size_t add_best_fit(int size, Array_del *array_del, FILE *db)
     return offset;
 }
 
+/**
+ * @brief Funcion para añadir un elemento con la estrategia de worst_fit
+ * 
+ * @param size Tamaño del dato a insertar
+ * @param array_del Array de huecos
+ * @param db Fichero de datos
+ * @return Offset del elemento insertado   
+ */
 size_t add_worst_fit(int size, Array_del *array_del, FILE *db)
 {
     size_t aux_offset = 0, size_aux;
@@ -308,6 +401,14 @@ size_t add_worst_fit(int size, Array_del *array_del, FILE *db)
     return aux_offset;
 }
 
+/**
+ * @brief Funcion para añadir un elemento con la estrategia de first_fit
+ * 
+ * @param size Tamaño del dato a insertar
+ * @param array_del Array de huecos
+ * @param db Fichero de datos
+ * @return Offset del elemento insertado   
+ */
 size_t add_first_fit(int size, Array_del *array_del, FILE *db)
 {
     size_t aux_offset = 0, size_aux;
@@ -355,6 +456,12 @@ size_t add_first_fit(int size, Array_del *array_del, FILE *db)
     return aux_offset;
 }
 
+/**
+ * @brief Función que carga el array de índices del archivo binario .ind
+ * 
+ * @param a Array de indices de la base de datos
+ * @param binario Fichero de índices
+ */
 void load_ind_to_array_add(Array_add *a, FILE *binario)
 {
     int i, size, size_elemento, num_inds;
@@ -381,7 +488,13 @@ void load_ind_to_array_add(Array_add *a, FILE *binario)
         insertArray_add(a, ind_aux);
     }
 }
-
+/**
+ * @brief Función que carga el array de huecos del archivo binario .lst
+ * 
+ * @param a Array de huecos de la base de datos
+ * @param binario Fichero de huecos
+ * @param strat Estrategia utilizada
+ */
 void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
 {
     int i, size, size_elemento, num_inds;
@@ -438,6 +551,9 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
     }
     free(ind_aux);
 }
+
+
+/*------------------------------ PROGRAMA PRINCIPAL ------------------------------*/
 
 int main(int argc, char *argv[])
 {

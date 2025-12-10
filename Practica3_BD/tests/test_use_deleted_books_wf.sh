@@ -9,7 +9,7 @@ set filename "test_reuse"
 # 1. Limpieza previa: Borramos archivos antiguos para empezar de cero
 spawn rm -f $filename.db $filename.ind $filename.lst
 
-spawn ./$programName worst_fit $filename
+spawn valgrind --track-origins=yes ./$programName worst_fit $filename
 expect "Type command and argument/s."
 
 # Añadimos Libro (Ocupará Offset 0)

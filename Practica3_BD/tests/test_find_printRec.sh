@@ -15,7 +15,7 @@ set filename "test"
 # file delete [glob test*]
 spawn rm -f $filename.db $filename.ind
 expr {srand([clock seconds])}    ;# initialize RNG
-spawn ./$programName best_fit test
+spawn valgrind --track-origins=yes ./$programName first_fit $filename
 
 # introduzco datos en la base de datos
 for {set x 1001} {$x<1100} {incr x} {
