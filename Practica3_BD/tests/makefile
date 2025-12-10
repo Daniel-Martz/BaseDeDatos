@@ -80,10 +80,13 @@ run_test8: library
 	expect ./reload_index.sh
 
 run_test9: library
-	expect ./test_del_add_ff.sh
+	expect ./test_use_deleted_books_ff.sh
 
 run_test10: library
-	expect ./test_del_add_wf.sh
+	expect ./test_use_deleted_books_wf.sh
 
 run_test11: library
-	expect ./test_del_add_bf.sh
+	expect ./test_use_deleted_books_bf.sh
+
+run_test12: library
+	expect ./test_find_printRec.sh
