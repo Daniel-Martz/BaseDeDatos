@@ -24,17 +24,17 @@ library: library.o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-first_fit:
+firstfit:
 	@echo Running first_fit
 	@valgrind --leak-check=full -s ./library first_fit test
 
-best_fit:
+bestfit:
 	@echo Running best_fit
-	@valgrind --leak-check=full -s ./library best_fit test
+	@valgrind --leak-check=full -s ./library best_fit test_reuse
 
-worst_fit:
+worstfit:
 	@echo Running worst_fit_fit
-	@valgrind --leak-check=full -s ./library worst_fit test
+	@valgrind --leak-check=full -s ./library worst_fit test_reuse
 
 #Para que no haya problemas cunado un test necesite ejecutar otro
 permissions:
@@ -83,4 +83,7 @@ run_test9: library
 	expect ./test_del_add_ff.sh
 
 run_test10: library
-	expect ./test_del_add_ff.sh
+	expect ./test_del_add_wf.sh
+
+run_test11: library
+	expect ./test_del_add_bf.sh

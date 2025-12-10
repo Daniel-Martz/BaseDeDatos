@@ -414,9 +414,10 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
     if(strat_aux == strat){
         free(a->array);
         a->array = ind_aux;
+        a->used = num_inds;
+        a->size = num_inds;
         return;
     }
-
     if (strat == FIRSTFIT)
     {
         for (i = 0; i < num_inds; i++){
