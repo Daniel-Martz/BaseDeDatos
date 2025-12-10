@@ -414,7 +414,7 @@ void load_ind_to_array_del(Array_del *a, FILE *binario, int strat)
     if(strat_aux == strat){
         free(a->array);
         a->array = ind_aux;
-        a->used += num_inds;
+        a->used = num_inds;
         a->size = num_inds;
         return;
     }
